@@ -9,7 +9,13 @@ import {
   BriefcaseBusiness,
   Activity,
   CalendarDays,
+  Calendar,
+  Building2,
+  Target,
+  FileText,
+  Settings,
   CheckCircle2,
+  CheckSquare,
   Compass,
   Gauge,
   LogIn,
@@ -42,6 +48,12 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import ActivityPage from "./pages/ActivityPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
+import TasksPage from "./pages/TasksPage";
+import CalendarPage from "./pages/CalendarPage";
+import CompanyPage from "./pages/CompanyPage";
+import CampaignsPage from "./pages/CampaignsPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 import { loginFrappe, logoutFrappe } from "./lib/frappe";
 
@@ -78,6 +90,12 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/", label: "Dashboard", module: "ERP", description: "Live executive overview", icon: Gauge },
   { path: "/leads", label: "ATM Leads", module: "CCLMS", description: "Lead capture, workflow, dedupe", icon: Users, roles: ROLE.cclms },
   { path: "/followups", label: "Follow-ups", module: "Sales", description: "Sales-agent follow-up calls and convert to lead", icon: PhoneCall, roles: ROLE.sales },
+  { path: "/tasks", label: "Tasks", module: "Sales", description: "Assign and track tasks", icon: CheckSquare, roles: ROLE.sales },
+  { path: "/calendar", label: "Calendar", module: "Sales", description: "Leads and follow-ups calendar", icon: Calendar, roles: ROLE.sales },
+  { path: "/companies", label: "Companies", module: "Sales", description: "Operator companies directory", icon: Building2, roles: ROLE.sales },
+  { path: "/campaigns", label: "Campaigns", module: "Sales", description: "Monitor and deploy campaigns", icon: Target, roles: ROLE.sales },
+  { path: "/documents", label: "Documents", module: "Sales", description: "Import and open documents", icon: FileText, roles: ROLE.sales },
+  { path: "/settings", label: "Settings", module: "Sales", description: "Profile and appearance", icon: Settings, roles: ROLE.sales },
   { path: "/pipeline", label: "Pipeline", module: "CCLMS", description: "Milestones and state velocity", icon: TrendingUp, roles: ROLE.cclms },
   { path: "/signs", label: "Signs", module: "CCLMS", description: "Attribution and signed deals", icon: CheckCircle2, roles: ROLE.cclms },
   { path: "/direction", label: "Direction", module: "CRM", description: "State and executive coverage", icon: Compass, roles: ROLE.sales },
@@ -217,7 +235,12 @@ function DashboardShell() {
   const session = useDashboardSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("gc-theme") === "dark");
+  useEffect(() => {
+    const onChange = () => setDarkMode(localStorage.getItem("gc-theme") === "dark");
+    window.addEventListener("gc-theme-change", onChange);
+    return () => window.removeEventListener("gc-theme-change", onChange);
+  }, []);
   const [navSearch, setNavSearch] = useState("");
 
   const handleLogout = async () => {
@@ -331,6 +354,12 @@ function DashboardShell() {
               <Route path="/" element={<OverviewPage />} />
               <Route path="/leads" element={<RouteGate path="/leads" title="ATM Leads" roles={ROLE.cclms}><LeadsPage /></RouteGate>} />
               <Route path="/followups" element={<RouteGate path="/followups" title="Follow-ups" roles={ROLE.sales}><FollowUpsPage /></RouteGate>} />
+              <Route path="/tasks" element={<RouteGate path="/tasks" title="Tasks" roles={ROLE.sales}><TasksPage /></RouteGate>} />
+              <Route path="/calendar" element={<RouteGate path="/calendar" title="Calendar" roles={ROLE.sales}><CalendarPage /></RouteGate>} />
+              <Route path="/companies" element={<RouteGate path="/companies" title="Companies" roles={ROLE.sales}><CompanyPage /></RouteGate>} />
+              <Route path="/campaigns" element={<RouteGate path="/campaigns" title="Campaigns" roles={ROLE.sales}><CampaignsPage /></RouteGate>} />
+              <Route path="/documents" element={<RouteGate path="/documents" title="Documents" roles={ROLE.sales}><DocumentsPage /></RouteGate>} />
+              <Route path="/settings" element={<RouteGate path="/settings" title="Settings" roles={ROLE.sales}><SettingsPage /></RouteGate>} />
               <Route path="/signs" element={<RouteGate path="/signs" title="Signs" roles={ROLE.cclms}><SignsPage /></RouteGate>} />
               <Route path="/pipeline" element={<RouteGate path="/pipeline" title="Pipeline" roles={ROLE.cclms}><PipelinePage /></RouteGate>} />
               <Route path="/agents" element={<RouteGate path="/agents" title="Agents" roles={ROLE.sales}><AgentsPage /></RouteGate>} />

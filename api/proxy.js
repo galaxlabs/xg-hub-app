@@ -2,10 +2,13 @@ const FRAPPE_BASE_URL = (process.env.FRAPPE_BASE_URL || "https://btm.digihoopoe.
 const API_KEY = process.env.API_KEY || "";
 const API_SECRET = process.env.API_SECRET || "";
 
-function serializeBody(req) {
+function serializeBody(req, rawBody) {
+  const contentType = String(req.headers["content-type"] || "");
+  if (contentType.includes("multipart/form-data")) {
+    return rawBody;
+  }
   if (req.body == null) return undefined;
   if (Buffer.isBuffer(req.body) || typeof req.body === "string") return req.body;
-  const contentType = String(req.headers["content-type"] || "");
   if (contentType.includes("application/x-www-form-urlencoded")) {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(req.body)) {
@@ -14,6 +17,14 @@ function serializeBody(req) {
     return params.toString();
   }
   return JSON.stringify(req.body);
+}
+
+function readRawBody(req) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+  });
 }
 
 export default async function handler(req, res) {
@@ -37,10 +48,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    const rawBody = String(req.headers["content-type"] || "").includes("multipart/form-data") ? await readRawBody(req) : undefined;
     const upstream = await fetch(target, {
       method: "POST",
       headers,
-      body: serializeBody(req),
+      body: serializeBody(req, rawBody),
       redirect: "manual",
     });
 
