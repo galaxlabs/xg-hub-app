@@ -1071,7 +1071,7 @@ export default function LeadsPage() {
         <div className="p-5">
           {isLoading ? <LoadingBlock /> : tabLeads.length === 0 ? <EmptyBlock msg="No leads found" /> : (
             <>
-              <DataTable keyField="name" rows={tabLeads} cols={[
+              <DataTable keyField="name" rows={tabLeads} onRowClick={(r) => setViewLeadName(r.name)} cols={[
                 { key: "business_name", label: "Business",
                   render: r => <button className="text-left font-semibold text-primary hover:underline" onClick={() => setViewLeadName(r.name)}>{r.business_name ?? "—"}</button> },
                 { key: "workflow_state", label: "State",

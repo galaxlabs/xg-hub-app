@@ -78,6 +78,27 @@ export default function FollowUpsPage() {
     }
   }
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [newFu, setNewFu] = useState({ business_name: "", business_phone: "", follow_up_time: "" });
+
+  async function createFollowUp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newFu.business_name.trim()) { setError("Business name is required"); return; }
+    try {
+      await callFrappe("cclms.api.follow_up.schedule_follow_up", {
+        lead_name: null,
+        follow_up_time: newFu.follow_up_time ? new Date(newFu.follow_up_time).toISOString().slice(0, 19).replace("T", " ") : null,
+        priority: "Normal",
+        notes: newFu.business_phone ? `Phone: ${newFu.business_phone}` : "",
+      });
+      setShowCreate(false);
+      setNewFu({ business_name: "", business_phone: "", follow_up_time: "" });
+      await load();
+    } catch (e: any) {
+      setError(e.message || "Create failed");
+    }
+  }
+
   return (
     <div className="p-6 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -90,6 +111,7 @@ export default function FollowUpsPage() {
             <option value="">All statuses</option>
             {Object.keys(STATUS_STYLE).map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+          <button className="gc-btn gc-btn-primary" onClick={() => setShowCreate(true)}>+ New Follow-up</button>
           <button className="gc-btn" onClick={() => void load()} disabled={loading}>{loading ? "Loading…" : "Refresh"}</button>
         </div>
       </div>
@@ -134,6 +156,26 @@ export default function FollowUpsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCreate(false)}>
+          <form onSubmit={createFollowUp} className="w-full max-w-md rounded-lg border border-border bg-[var(--gc-card)] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="mb-3 text-base font-semibold">New Follow-up</h2>
+            <div className="space-y-3">
+              <div><label className="text-xs text-muted">Business Name *</label>
+                <input className="gc-input mt-1 w-full" value={newFu.business_name} onChange={(e) => setNewFu({ ...newFu, business_name: e.target.value })} placeholder="e.g. Sinclair Gas Station" required /></div>
+              <div><label className="text-xs text-muted">Business Phone</label>
+                <input className="gc-input mt-1 w-full" value={newFu.business_phone} onChange={(e) => setNewFu({ ...newFu, business_phone: e.target.value })} placeholder="e.g. 5558675309" /></div>
+              <div><label className="text-xs text-muted">Follow-up Time</label>
+                <input type="datetime-local" className="gc-input mt-1 w-full" value={newFu.follow_up_time} onChange={(e) => setNewFu({ ...newFu, follow_up_time: e.target.value })} /></div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" className="gc-btn gc-btn-ghost" onClick={() => setShowCreate(false)}>Cancel</button>
+              <button type="submit" className="gc-btn gc-btn-primary">Create</button>
+            </div>
+          </form>
         </div>
       )}
     </div>

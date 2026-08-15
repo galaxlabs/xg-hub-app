@@ -240,10 +240,12 @@ export function DataTable<T extends Record<string, any>>({
   cols,
   rows,
   keyField,
+  onRowClick,
 }: {
   cols: ColDef<T>[];
   rows: T[];
   keyField?: keyof T;
+  onRowClick?: (row: T) => void;
 }) {
   return (
     <div className="overflow-auto -mx-0">
@@ -262,7 +264,12 @@ export function DataTable<T extends Record<string, any>>({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={keyField ? String(row[keyField as string]) : i}>
+            <tr
+              key={keyField ? String(row[keyField as string]) : i}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              style={onRowClick ? { cursor: "pointer" } : undefined}
+              className={onRowClick ? "hover:bg-[var(--surface-hover,#f5f5f4)]" : undefined}
+            >
               {cols.map((c) => (
                 <td
                   key={String(c.key)}

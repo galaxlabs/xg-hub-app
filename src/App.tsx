@@ -316,7 +316,6 @@ function DashboardShell() {
               <div className="flex min-w-0 items-center gap-3">
                 <button className="rounded-[6px] p-2 hover:bg-[var(--gc-surface)] lg:hidden" onClick={() => setSidebarOpen(true)} title="Open navigation"><Menu className="h-5 w-5" /></button>
                 <div className="min-w-0">
-                  <div className="text-[11px] font-semibold uppercase tracking-normal text-[var(--gc-muted)]">Galaxy Labs / {activeItem?.module ?? "ERP"}</div>
                   <div className="truncate text-lg font-semibold tracking-normal">{pageTitle}</div>
                 </div>
               </div>
