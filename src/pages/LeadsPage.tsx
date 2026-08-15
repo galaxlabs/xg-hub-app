@@ -14,6 +14,7 @@ import {
 import type { ATMLeadRow } from "../lib/types";
 import { hasAnyRole, useDashboardSession } from "../lib/session";
 import { syncLeads } from "../lib/leadCache";
+import BusinessHours, { type OpeningHourRow } from "../components/BusinessHours";
 
 // ── Workflow "Track" — all states from Frappe DB ─────────────────────────
 export const WF_STATES = [
@@ -738,7 +739,12 @@ function LeadForm({ initial, onSave, onCancel, saving }: {
           <FormField label="Base Rent ($)"><input type="number" step="0.01" className="gc-input" value={form.base_rent??""} onChange={e=>set("base_rent",e.target.value)} /></FormField>
           <FormField label="Percentage (%)"><input type="number" step="0.01" className="gc-input" value={form.percentage??""} onChange={e=>set("percentage",e.target.value)} /></FormField>
           <FormField label="Hours"><input className="gc-input" value={form.hours??""} onChange={e=>set("hours",e.target.value)} placeholder="24/7" /></FormField>
-        </FormGrid></div>
+        </FormGrid>
+        <BusinessHours
+          value={form.opening_hours as unknown as OpeningHourRow[] | undefined}
+          onChange={(rows) => set("opening_hours", rows as unknown as Partial<ATMLeadRow>["opening_hours"])}
+        />
+      </div>
 
       <div><p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Key Dates</p>
         <FormGrid cols={3}>
