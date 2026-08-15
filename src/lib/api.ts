@@ -261,15 +261,14 @@ export const fetchATMLead = (name: string) =>
   callFrappe<ATMLeadRow>("frappe.client.get", { doctype: "ATM Leads", name });
 
 export const createATMLead = (data: Partial<ATMLeadRow>) =>
-  callFrappe<{ name: string }>("frappe.client.insert", {
-    doc: JSON.stringify({ doctype: "ATM Leads", ...data }),
+  callFrappe<{ name: string }>("cclms.api.lead.create_lead", {
+    data: JSON.stringify({ ...data }),
   });
 
 export const updateATMLead = (name: string, data: Partial<ATMLeadRow>) =>
-  callFrappe("frappe.client.set_value", {
-    doctype: "ATM Leads",
+  callFrappe("cclms.api.lead.update_lead", {
     name,
-    fieldname: JSON.stringify(data),
+    data: JSON.stringify(data),
   });
 
 export const deleteATMLead = (name: string) =>

@@ -9,7 +9,7 @@ export interface DashboardSession {
 }
 
 export async function fetchDashboardSession(): Promise<DashboardSession> {
-  return callFrappe<DashboardSession>("cclms.api.auth.whoami");
+  return callFrappe<DashboardSession>("cclms.api.crm_portal.get_current_sales_agent");
 }
 
 const DashboardSessionContext = createContext<DashboardSession | null>(null);
