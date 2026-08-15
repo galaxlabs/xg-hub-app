@@ -74,8 +74,7 @@ const ROLE = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { path: "/", label: "Command Center", module: "ERP", description: "Live executive overview", icon: Gauge },
-  { path: "/analytics", label: "Analytics", module: "ERP", description: "DocType health and recent activity", icon: BarChart3, roles: ROLE.analytics },
+  { path: "/", label: "Dashboard", module: "ERP", description: "Live executive overview", icon: Gauge },
   { path: "/leads", label: "ATM Leads", module: "CCLMS", description: "Lead capture, workflow, dedupe", icon: Users, roles: ROLE.cclms },
   { path: "/followups", label: "Follow-ups", module: "Sales", description: "Sales-agent follow-up calls and convert to lead", icon: PhoneCall, roles: ROLE.sales },
   { path: "/pipeline", label: "Pipeline", module: "CCLMS", description: "Milestones and state velocity", icon: TrendingUp, roles: ROLE.cclms },
@@ -316,7 +315,6 @@ function DashboardShell() {
           <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8">
             <Routes>
               <Route path="/" element={<OverviewPage />} />
-              <Route path="/analytics" element={<RouteGate path="/analytics" title="Analytics" roles={ROLE.analytics}><AnalyticsPage /></RouteGate>} />
               <Route path="/leads" element={<RouteGate path="/leads" title="ATM Leads" roles={ROLE.cclms}><LeadsPage /></RouteGate>} />
               <Route path="/followups" element={<RouteGate path="/followups" title="Follow-ups" roles={ROLE.sales}><FollowUpsPage /></RouteGate>} />
               <Route path="/signs" element={<RouteGate path="/signs" title="Signs" roles={ROLE.cclms}><SignsPage /></RouteGate>} />
