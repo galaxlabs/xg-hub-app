@@ -600,6 +600,19 @@ export const fetchOperatorCompanies = () =>
     order_by: "operator_name asc",
   });
 
+// Local-first wrapper: read from localStorage cache, then delta-refresh.
+export async function fetchOperatorCompaniesCached(): Promise<{ name: string; operator_name: string }[]> {
+  const { getCachedCompanies, syncCompanies } = await import("./leadCache");
+  const cached: { name: string; operator_name: string }[] = getCachedCompanies<{ name: string; operator_name: string }>();
+  if (cached.length) {
+    // Fire-and-forget background refresh
+    syncCompanies().catch(() => {});
+    return cached;
+  }
+  const fresh = (await syncCompanies()) as { name: string; operator_name: string }[];
+  return fresh.length ? fresh : cached;
+}
+
 /** Fetch ATM Lead with state_history child table */
 export const fetchATMLeadFull = (name: string) =>
   callFrappe<ATMLeadRow & { state_history?: StateHistoryRow[] }>("frappe.client.get", {

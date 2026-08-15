@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import {
   fetchATMLeads, fetchATMLeadFull, createATMLead, updateATMLead, deleteATMLead,
   applyWorkflowAction, checkLocationConflict, getCompanyAvailability,
-  fetchOperatorCompanies, fetchStateCounts, thisMonthRange,
+  fetchOperatorCompanies, fetchOperatorCompaniesCached, fetchStateCounts, thisMonthRange,
   type DedupConflict, type CompanyAvailability, type StateHistoryRow,
 } from "../lib/api";
 import {
@@ -13,6 +13,7 @@ import {
 } from "../components/ui/index";
 import type { ATMLeadRow } from "../lib/types";
 import { hasAnyRole, useDashboardSession } from "../lib/session";
+import { syncLeads } from "../lib/leadCache";
 
 // ── Workflow "Track" — all states from Frappe DB ─────────────────────────
 export const WF_STATES = [
@@ -666,7 +667,7 @@ function LeadForm({ initial, onSave, onCancel, saving }: {
   const [conflict, setConflict] = useState<DedupConflict | null>(null);
   const [checking, setChecking] = useState(false);
   const [dedupDismissed, setDedupDismissed] = useState(false);
-  const { data: companies = [] } = useQuery({ queryKey: ["operator_companies"], queryFn: fetchOperatorCompanies });
+  const { data: companies = [] } = useQuery({ queryKey: ["operator_companies"], queryFn: fetchOperatorCompaniesCached, staleTime: 5*60_000 });
 
   const set = (k: keyof ATMLeadRow, v: unknown) => {
     setForm(f=>({...f,[k]:v}));
@@ -896,6 +897,7 @@ const DEFAULT_FILTERS: Filters = {
 };
 
 export default function LeadsPage() {
+  const session = useDashboardSession();
   const { from, to } = thisMonthRange();
   const [filters, setFilters] = useState<Filters>({ ...DEFAULT_FILTERS, fromDate: from, toDate: to });
   const [page, setPage]       = useState(1);
@@ -909,7 +911,14 @@ export default function LeadsPage() {
   const [dupLead, setDupLead]           = useState<ATMLeadRow | null>(null);
 
   const qc = useQueryClient();
-  const { data: companiesList = [] } = useQuery({ queryKey: ["operator_companies"], queryFn: fetchOperatorCompanies });
+  const { data: companiesList = [] } = useQuery({ queryKey: ["operator_companies"], queryFn: fetchOperatorCompaniesCached, staleTime: 5*60_000 });
+
+  // Delta-sync: warm the local cache with only new/updated leads (avoids full refetch).
+  const { data: cachedAll = [] } = useQuery({
+    queryKey: ["atm_leads_cached", session?.user],
+    queryFn: () => syncLeads(session?.user || "guest").then((rows) => rows),
+    staleTime: 60_000,
+  });
 
   const mergeFilters = (f: Partial<Filters>) => { setFilters(p => ({ ...p, ...f })); setPage(1); };
 

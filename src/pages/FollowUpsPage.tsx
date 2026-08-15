@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDashboardSession } from "../lib/session";
 import { callFrappe } from "../lib/frappe";
+import { syncFollowUps } from "../lib/leadCache";
 
 type FollowUp = {
   name?: string;
@@ -39,11 +40,9 @@ export default function FollowUpsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await callFrappe<FollowUp[] | { rows?: FollowUp[] }>(
-        "cclms.api.follow_up.my_follow_ups",
-        status ? { status } : {},
-      );
-      setRows(Array.isArray(res) ? res : (res as any)?.rows || []);
+      const res = await syncFollowUps(session?.user || "guest");
+      const rows = Array.isArray(res) ? res : (res as any)?.rows || [];
+      setRows(status ? rows.filter((r: FollowUp) => r.status === status) : rows);
     } catch (e: any) {
       setError(e.message || "Failed to load follow-ups");
       setRows([]);
