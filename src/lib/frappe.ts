@@ -17,6 +17,11 @@ function getCookie(name: string): string {
   return match ? decodeURIComponent(match.slice(key.length)) : "";
 }
 
+function getCsrfToken(): string {
+  // Frappe stores the CSRF token in the X-Frappe-CSRF-Token cookie.
+  return getCookie("X-Frappe-CSRF-Token") || (window as { csrf_token?: string }).csrf_token || "";
+}
+
 export async function loginFrappe(usr: string, pwd: string): Promise<void> {
   const baseUrl = resolveFrappeBaseUrl();
   const url = baseUrl
@@ -63,6 +68,7 @@ export async function callFrappe<T = unknown>(
   const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
   const apiSecret = import.meta.env.VITE_API_SECRET as string | undefined;
   const useToken = apiKey && apiSecret && resolveFrappeBaseUrl() !== window.location?.origin;
+  const csrf = getCsrfToken();
 
   const res = await fetch(url, {
     method: "POST",
@@ -72,10 +78,9 @@ export async function callFrappe<T = unknown>(
       Accept: "application/json",
       ...(useToken
         ? { Authorization: `token ${apiKey}:${apiSecret}` }
-        : {
-            "X-Frappe-CSRF-Token":
-              (window as { csrf_token?: string }).csrf_token || getCookie("csrftoken") || "Guest",
-          }),
+        : csrf
+          ? { "X-Frappe-CSRF-Token": csrf }
+          : {}),
     },
     body: body.toString(),
   });
