@@ -222,6 +222,8 @@ function DashboardShell() {
 
   const handleLogout = async () => {
     await logoutFrappe();
+    // Invalidate the session query so AppContent refetches and shows the login screen.
+    await qc.invalidateQueries({ queryKey: ["dashboard-session"] });
     window.location.href = "/";
   };
   const location = useLocation();

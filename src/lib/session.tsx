@@ -36,7 +36,7 @@ export function hasAnyRole(roles: string[] | undefined, requiredRoles: string[] 
 }
 
 export function isGuestSession(session: DashboardSession | null | undefined): boolean {
-  return !session || session.user === "Guest";
+  return !session || !session.user || session.user === "Guest";
 }
 
 export function formatRoles(roles: string[] | undefined): string {
