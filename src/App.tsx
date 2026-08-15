@@ -13,6 +13,7 @@ import {
   Compass,
   Gauge,
   LogIn,
+  LogOut,
   Menu,
   Moon,
   PanelLeftClose,
@@ -42,7 +43,7 @@ import EmployeesPage from "./pages/EmployeesPage";
 import ActivityPage from "./pages/ActivityPage";
 import FollowUpsPage from "./pages/FollowUpsPage";
 
-import { loginFrappe } from "./lib/frappe";
+import { loginFrappe, logoutFrappe } from "./lib/frappe";
 
 import {
   DashboardSessionProvider,
@@ -218,6 +219,11 @@ function DashboardShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [navSearch, setNavSearch] = useState("");
+
+  const handleLogout = async () => {
+    await logoutFrappe();
+    window.location.href = "/";
+  };
   const location = useLocation();
 
   const roles = session?.roles ?? [];
@@ -292,6 +298,13 @@ function DashboardShell() {
               <div className="truncate text-sm font-semibold">{session?.full_name ?? session?.user}</div>
               {!collapsed ? <div className="mt-1 truncate text-xs text-white/60">{formatRoles(roles)}</div> : null}
             </div>
+            <button
+              onClick={() => void handleLogout()}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-[8px] border border-white/10 px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" /> {collapsed ? "" : "Sign out"}
+            </button>
           </div>
         </aside>
 

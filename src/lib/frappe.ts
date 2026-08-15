@@ -48,6 +48,19 @@ export async function loginFrappe(usr: string, pwd: string): Promise<void> {
   }
 }
 
+export async function logoutFrappe(): Promise<void> {
+  const baseUrl = resolveFrappeBaseUrl();
+  const url = baseUrl
+    ? new URL("/api/method/logout", baseUrl).toString()
+    : "/api/method/logout";
+  const csrf = getCsrfToken();
+  await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...(csrf ? { "X-Frappe-CSRF-Token": csrf } : {}) },
+  }).catch(() => {});
+}
+
 export async function callFrappe<T = unknown>(
   method: string,
   args?: Record<string, unknown>
