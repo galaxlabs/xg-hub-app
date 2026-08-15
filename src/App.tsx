@@ -246,7 +246,6 @@ function DashboardShell() {
             {!collapsed ? (
               <div className="min-w-0">
                 <div className="truncate text-base font-semibold">XG Hub</div>
-                <div className="truncate text-xs text-white/65">ERP · CRM · CCLMS</div>
               </div>
             ) : null}
             <button className="ml-auto hidden rounded-[6px] p-2 text-white/70 hover:bg-white/10 lg:inline-flex" onClick={() => setCollapsed((v) => !v)} title="Toggle sidebar">
