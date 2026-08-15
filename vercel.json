@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/proxy.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/api/method/:method", "destination": "/api/proxy.js?method=:method" },
+    { "source": "/api/method/:method/:rest*", "destination": "/api/proxy.js?method=:method&rest=:rest" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
