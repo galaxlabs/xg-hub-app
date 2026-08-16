@@ -4,6 +4,7 @@ import { useDashboardSession } from "../lib/session";
 import { callFrappe } from "../lib/frappe";
 import { syncFollowUps } from "../lib/leadCache";
 import BusinessHours, { type OpeningHourRow } from "../components/BusinessHours";
+import CompanySelect from "../components/CompanySelect";
 import { fetchFollowUpSlots } from "../lib/api";
 import type { FollowUpSlot } from "../lib/api";
 
@@ -300,10 +301,10 @@ export default function FollowUpsPage() {
                   </div>
                 )}
               </div>
-              <div><label className="text-xs text-muted">Company (Operating Company)</label>
-                <input className="gc-input mt-1 w-full" value={newFu.company} onChange={(e) => setNewFu({ ...newFu, company: e.target.value })} placeholder="e.g. Rocket Coin" /></div>
+              <div><label className="text-xs text-muted">Operator Company *</label>
+                <div className="mt-1"><CompanySelect value={newFu.company} onChange={(v) => setNewFu({ ...newFu, company: v, operating_company: v })} placeholder="Select operator company" /></div></div>
               <div><label className="text-xs text-muted">Owner / Operating Company</label>
-                <input className="gc-input mt-1 w-full" value={newFu.operating_company} onChange={(e) => setNewFu({ ...newFu, operating_company: e.target.value })} /></div>
+                <input className="gc-input mt-1 w-full" value={newFu.operating_company} onChange={(e) => setNewFu({ ...newFu, operating_company: e.target.value })} placeholder="e.g. Rocket Coin" /></div>
               <div><label className="text-xs text-muted">Business Type</label>
                 <input className="gc-input mt-1 w-full" value={newFu.business_type} onChange={(e) => setNewFu({ ...newFu, business_type: e.target.value })} placeholder="e.g. Gas Station" /></div>
               <div><label className="text-xs text-muted">Owner Name</label>
