@@ -89,3 +89,22 @@ See `CHAT_AND_STATE_HISTORY.md` for full detail. Summary:
 - `EmployeeManagement`/Employees page: read-only directory (HR module).
 - Vite build disables CSS minification (`cssMinify:false`) because lightningcss 1.33 crashes on Tailwind `border-[var(--gc-border)]` arbitrary classes.
 - Vercel proxy: `api/proxy.js` forwards `/api/method/:method` → `btm.digihoopoe.com`; supports multipart via raw-body read. Server routes `/api/` through nginx → node on 5001; Frappe itself is on gunicorn:8000.
+
+## 14. Sales Agent login (XG Hub access)
+
+- The `Sales Agent` controller (`sales_agent.py`) auto-creates a linked `User` (email) + `Employee` on save, forces the **`Sales Executive` role profile** (grants `Sales Agent` + `Sales User` roles) and stores a generated password in `agent_password` (encrypted).
+- `cclms.call_centre_lead_management_system.doctype.sales_agent.sales_agent.sync_portal_users` bulk-ensures every **active** sales agent has a User (creates missing ones, reuses existing, forces the Sales Executive profile + enabled state). Returns `{created, reused, missing_email, errors}`. Only System Manager / HR Manager / Sales Manager can run it.
+- To give an agent access: set `enable=1` on the Sales Agent (auto-creates/syncs the User), then generate a password via the Sales Agent desk form (`generate_new_password`) or `get_saved_password` (manager-only).
+- Note: some legacy accounts have email-verification/2FA enabled, which returns a `verification` prompt on login instead of a session. Setting an 8-digit PIN (Settings → PIN Code) enables PIN unlock without OTP.
+- Known data cleanup done: `Ashlin Anderson` email typo `@xperts-global.om` → `@xperts-global.com`.
+
+## 15. HRMS (Leave)
+
+- `cclms.api.hrms` (new):
+  - `my_leaves` / `list_all_leaves` — current employee's / all leave applications
+  - `leave_types` — from `Leave Type`
+  - `leave_balance` — from `Leave Ledger Entry` (opening + credited − consumed per type)
+  - `create_leave` — employee submits (resolves employee via Sales Agent.employee or Employee.user_id)
+  - `approve_leave` — Approve / Reject / Cancel (+ optional comment)
+- XG Hub **Leave** page (`/leave`, HR module): leave-balance stat cards, My/All tabs, status filter, create modal, approve/reject actions. Uses Frappe's `Leave Application` doctype.
+

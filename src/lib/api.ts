@@ -918,3 +918,30 @@ export const attachCclmsRecord = (p: { doctype: string; name: string }) =>
 
 export const botAsk = (p: { query: string }) =>
   callFrappe<{ ok: boolean; reply?: string | null; context?: { kind: string; text: string }[]; error?: string; from?: string }>("cclms.api.chat.bot_ask", p);
+
+// ── HRMS: Leave ─────────────────────────────────────────────────────────
+export interface LeaveRow {
+  name: string; employee?: string; employee_name?: string; leave_type?: string;
+  from_date?: string; to_date?: string; total_leave_days?: number; status?: string;
+  description?: string; leave_approver_name?: string; posting_date?: string;
+}
+export interface LeaveTypeOption { name: string; max_leaves_allowed?: number; is_lwp?: number; }
+export interface LeaveBalanceRow { leave_type: string; balance: number; }
+
+export const fetchMyLeaves = (p: { status?: string; from_date?: string; to_date?: string; limit?: number } = {}) =>
+  callFrappe<LeaveRow[]>("cclms.api.hrms.my_leaves", p);
+
+export const fetchLeaveTypes = () =>
+  callFrappe<LeaveTypeOption[]>("cclms.api.hrms.leave_types");
+
+export const fetchLeaveBalance = (p: { employee?: string; leave_type?: string } = {}) =>
+  callFrappe<LeaveBalanceRow[]>("cclms.api.hrms.leave_balance", p);
+
+export const createLeave = (p: { leave_type: string; from_date: string; to_date: string; description?: string; half_day?: number; half_day_date?: string }) =>
+  callFrappe<LeaveRow>("cclms.api.hrms.create_leave", p);
+
+export const fetchAllLeaves = (p: { status?: string; from_date?: string; to_date?: string; employee?: string; limit?: number } = {}) =>
+  callFrappe<LeaveRow[]>("cclms.api.hrms.list_all_leaves", p);
+
+export const approveLeave = (name: string, status: string, comment?: string) =>
+  callFrappe<{ name: string; status: string }>("cclms.api.hrms.approve_leave", { name, status, comment: comment || "" });
