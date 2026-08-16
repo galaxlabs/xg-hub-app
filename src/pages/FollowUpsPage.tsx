@@ -280,26 +280,30 @@ export default function FollowUpsPage() {
                 <label className="text-xs text-muted">Time Slot (5-minute slots)</label>
                 {slotsLoading ? (
                   <div className="mt-1 py-3 text-center text-xs text-muted">Loading slots…</div>
-                ) : (
-                  <div className="mt-1 flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-border p-2">
-                    {slots.map((s) => {
-                      const active = selectedSlot === s.value;
-                      return (
-                        <button
-                          key={s.value}
-                          type="button"
-                          disabled={s.booked}
-                          onClick={() => { setSelectedSlot(s.value); setNewFu((p) => ({ ...p, follow_up_time: s.value })); }}
-                          className={`rounded border px-2 py-1 text-xs font-medium transition-colors ${s.booked ? "cursor-not-allowed border-border bg-muted/40 text-muted line-through" : active ? "border-primary bg-primary text-primary-fore" : "border-border hover:border-primary hover:text-primary"}`}
-                          title={s.booked ? `Booked: ${s.booked_by || "another client"}` : s.label}
-                        >
-                          {s.label}
-                        </button>
-                      );
-                    })}
-                    {slots.length === 0 && <div className="w-full py-3 text-center text-xs text-muted">No slots available for this day.</div>}
-                  </div>
-                )}
+                ) : (() => {
+                  const available = slots.filter((s) => !s.booked);
+                  return (
+                    <div>
+                      <div className="mb-1 text-[11px] text-muted">{available.length} of {slots.length} slots available (booked ones are hidden for you)</div>
+                      <div className="mt-1 flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-border p-2">
+                        {available.map((s) => {
+                          const active = selectedSlot === s.value;
+                          return (
+                            <button
+                              key={s.value}
+                              type="button"
+                              onClick={() => { setSelectedSlot(s.value); setNewFu((p) => ({ ...p, follow_up_time: s.value })); }}
+                              className={`rounded border px-2 py-1 text-xs font-medium transition-colors ${active ? "border-primary bg-primary text-primary-fore" : "border-border hover:border-primary hover:text-primary"}`}
+                            >
+                              {s.label}
+                            </button>
+                          );
+                        })}
+                        {available.length === 0 && <div className="w-full py-3 text-center text-xs text-muted">No slots available for this day.</div>}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div><label className="text-xs text-muted">Operator Company *</label>
                 <div className="mt-1"><CompanySelect value={newFu.company} onChange={(v) => setNewFu({ ...newFu, company: v, operating_company: v })} placeholder="Select operator company" /></div></div>
