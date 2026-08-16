@@ -14,6 +14,8 @@ import {
   Target,
   FileText,
   Settings,
+  Video,
+  MessageCircle,
   CheckCircle2,
   CheckSquare,
   Compass,
@@ -54,6 +56,8 @@ import CompanyPage from "./pages/CompanyPage";
 import CampaignsPage from "./pages/CampaignsPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import SettingsPage from "./pages/SettingsPage";
+import MeetingsPage from "./pages/MeetingsPage";
+import ChatPage from "./pages/ChatPage";
 
 import { loginFrappe, logoutFrappe } from "./lib/frappe";
 
@@ -95,6 +99,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/companies", label: "Companies", module: "Sales", description: "Operator companies directory", icon: Building2, roles: ROLE.sales },
   { path: "/campaigns", label: "Campaigns", module: "Sales", description: "Monitor and deploy campaigns", icon: Target, roles: ROLE.sales },
   { path: "/documents", label: "Documents", module: "Sales", description: "Import and open documents", icon: FileText, roles: ROLE.sales },
+  { path: "/meetings", label: "Meetings", module: "Sales", description: "Schedule and join Google Meet calls", icon: Video, roles: ROLE.sales },
+  { path: "/chat", label: "Team Chat", module: "Sales", description: "Message your colleagues", icon: MessageCircle, roles: ROLE.sales },
   { path: "/settings", label: "Settings", module: "Sales", description: "Profile and appearance", icon: Settings, roles: ROLE.sales },
   { path: "/pipeline", label: "Pipeline", module: "CCLMS", description: "Milestones and state velocity", icon: TrendingUp, roles: ROLE.cclms },
   { path: "/signs", label: "Signs", module: "CCLMS", description: "Attribution and signed deals", icon: CheckCircle2, roles: ROLE.cclms },
@@ -359,6 +365,8 @@ function DashboardShell() {
               <Route path="/companies" element={<RouteGate path="/companies" title="Companies" roles={ROLE.sales}><CompanyPage /></RouteGate>} />
               <Route path="/campaigns" element={<RouteGate path="/campaigns" title="Campaigns" roles={ROLE.sales}><CampaignsPage /></RouteGate>} />
               <Route path="/documents" element={<RouteGate path="/documents" title="Documents" roles={ROLE.sales}><DocumentsPage /></RouteGate>} />
+              <Route path="/meetings" element={<RouteGate path="/meetings" title="Meetings" roles={ROLE.sales}><MeetingsPage /></RouteGate>} />
+              <Route path="/chat" element={<RouteGate path="/chat" title="Team Chat" roles={ROLE.sales}><ChatPage /></RouteGate>} />
               <Route path="/settings" element={<RouteGate path="/settings" title="Settings" roles={ROLE.sales}><SettingsPage /></RouteGate>} />
               <Route path="/signs" element={<RouteGate path="/signs" title="Signs" roles={ROLE.cclms}><SignsPage /></RouteGate>} />
               <Route path="/pipeline" element={<RouteGate path="/pipeline" title="Pipeline" roles={ROLE.cclms}><PipelinePage /></RouteGate>} />
