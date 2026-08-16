@@ -4,9 +4,11 @@ import {
   fetchMultiDimReport, REPORT_DIMENSIONS, REPORT_MEASURES, thisMonthRange,
 } from "../lib/api";
 import type { MultiDimReportResponse } from "../lib/api";
+import WorkflowPivotTable from "./WorkflowPivotTable";
 
 export default function ReportsPage() {
   const { from, to } = thisMonthRange();
+  const [mode, setMode] = useState<"multi" | "pivot">("multi");
   const [dims, setDims] = useState<string[]>(["company"]);
   const [measures, setMeasures] = useState<string[]>(["count", "signed", "approved", "rejected"]);
   const [fromDate, setFrom] = useState(from);
@@ -56,12 +58,19 @@ export default function ReportsPage() {
     <div className="p-6 space-y-5 animate-fade-in">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold flex items-center gap-2"><Table2 className="h-5 w-5 text-indigo-500" /> Multi-Dimensional Report</h1>
-          <p className="text-sm text-muted">Generate ATM Leads reports by any combination of dimensions and measures</p>
+          <h1 className="text-xl font-semibold flex items-center gap-2"><Table2 className="h-5 w-5 text-indigo-500" /> Reports</h1>
+          <p className="text-sm text-muted">Generate ATM Leads reports — flexible dimensions or a fixed workflow pivot</p>
         </div>
-        {data && <button className="gc-btn gc-btn-ghost" onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</button>}
+        <div className="flex gap-1 rounded-lg border border-border bg-[var(--gc-surface)] p-1">
+          <button onClick={() => setMode("multi")} className={`rounded-md px-4 py-1.5 text-sm font-medium ${mode === "multi" ? "bg-[var(--gc-card)] text-primary shadow-sm" : "text-muted"}`}>Multi-Dimension</button>
+          <button onClick={() => setMode("pivot")} className={`rounded-md px-4 py-1.5 text-sm font-medium ${mode === "pivot" ? "bg-[var(--gc-card)] text-primary shadow-sm" : "text-muted"}`}>Workflow Pivot</button>
+        </div>
       </div>
 
+      {mode === "pivot" ? (
+        <WorkflowPivotTable />
+      ) : (
+      <>
       {/* Controls */}
       <div className="rounded-lg border border-border bg-[var(--gc-card)] p-4 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -101,7 +110,8 @@ export default function ReportsPage() {
 
         {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {data && <button className="gc-btn gc-btn-ghost" onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</button>}
           <button className="gc-btn gc-btn-primary" onClick={() => void run()} disabled={loading}>
             {loading ? "Generating…" : "Generate Report"}
           </button>
@@ -137,6 +147,8 @@ export default function ReportsPage() {
           </table>
         </div>
       ) : null}
+      </>
+      )}
     </div>
   );
 }

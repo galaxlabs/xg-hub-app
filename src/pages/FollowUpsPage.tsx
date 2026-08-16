@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Paperclip, Loader2 } from "lucide-react";
 import { useDashboardSession } from "../lib/session";
 import { callFrappe } from "../lib/frappe";
 import { syncFollowUps } from "../lib/leadCache";
@@ -81,7 +82,45 @@ export default function FollowUpsPage() {
     }
   }
 
+  async function notInterested(fu: FollowUp) {
+    const reason = window.prompt("Reason for Not Interested (optional):", "");
+    try {
+      await callFrappe("cclms.api.follow_up.mark_not_interested", {
+        name: fu.name,
+        reason: reason || "",
+      });
+      await load();
+    } catch (e: any) {
+      setError(e.message || "Failed to mark Not Interested");
+    }
+  }
+
+  async function attachFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !attachTarget) return;
+    setAttaching(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("is_private", "0");
+      body.append("attached_to_doctype", "Follow-up Schedule");
+      body.append("attached_to_name", attachTarget);
+      const res = await fetch("/api/method/frappe.handler.upload_file", { method: "POST", credentials: "include", body });
+      const data = await res.json();
+      if (!data?.message?.file_name) throw new Error("Upload failed");
+    } catch (e: any) {
+      setError(e.message || "Upload failed");
+    } finally {
+      setAttaching(false);
+      setAttachTarget(null);
+      if (attachRef.current) attachRef.current.value = "";
+    }
+  }
+
   const [showCreate, setShowCreate] = useState(false);
+  const [attachTarget, setAttachTarget] = useState<string | null>(null);
+  const [attaching, setAttaching] = useState(false);
+  const attachRef = useRef<HTMLInputElement>(null);
   const [newFu, setNewFu] = useState({
     business_name: "", business_phone: "", contact: "", follow_up_time: "", priority: "Normal",
     business_type: "", owner_name: "", email: "", personal_cell_phone: "", company: "",
@@ -194,9 +233,20 @@ export default function FollowUpsPage() {
                       {(fu.status === "Due" || fu.status === "Scheduled") && (
                         <button className="gc-btn gc-btn-sm" style={{ color: "#16a34a" }} onClick={() => void complete(fu)}>Complete</button>
                       )}
+                      {(fu.status === "Due" || fu.status === "Scheduled") && (
+                        <button className="gc-btn gc-btn-sm" style={{ color: "#8b5cf6" }} onClick={() => void notInterested(fu)}>Not Interested</button>
+                      )}
                       {(fu.status === "Due" || fu.status === "Scheduled" || fu.status === "Completed") && (
                         <button className="gc-btn gc-btn-sm" onClick={() => void convert(fu)}>Convert → Lead</button>
                       )}
+                      <button
+                        className="gc-btn gc-btn-sm"
+                        title="Attach document"
+                        disabled={attaching && attachTarget === fu.name}
+                        onClick={() => { setAttachTarget(fu.name || ""); attachRef.current?.click(); }}
+                      >
+                        {attaching && attachTarget === fu.name ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Paperclip className="h-3.5 w-3.5" />}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -205,6 +255,8 @@ export default function FollowUpsPage() {
           </table>
         </div>
       )}
+
+      <input ref={attachRef} type="file" className="hidden" onChange={attachFile} />
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCreate(false)}>

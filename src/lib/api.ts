@@ -866,3 +866,15 @@ export const fetchMultiDimReport = (p: {
     state_code: p.state_code || "",
     status: p.status || "",
   });
+
+// ── Workflow pivot (company x agent x workflow stages) ──────────────────
+export interface WorkflowPivotResponse {
+  dimensions: string[];
+  stages: string[];
+  rows: Record<string, any>[];
+  totals: Record<string, number>;
+  filters: Record<string, string | null>;
+}
+
+export const fetchWorkflowPivot = (p: { start_date?: string; end_date?: string; company?: string; agent?: string }) =>
+  callFrappe<WorkflowPivotResponse>("cclms.api.reports.workflow_pivot.workflow_pivot", p);

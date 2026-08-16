@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircle, Send, Search, Users, RefreshCw } from "lucide-react";
+import { MessageCircle, Send, Search, Users, RefreshCw, Paperclip, FileText, Loader2 } from "lucide-react";
 import { callFrappe } from "../lib/frappe";
 import { useDashboardSession } from "../lib/session";
 
 interface Contact { name: string; full_name?: string; user_image?: string | null; }
-interface MessageRow { name: string; sender: string; receiver: string; message: string; is_read?: number; creation?: string; }
+interface MessageRow { name: string; sender: string; receiver: string; message: string; is_read?: number; creation?: string; attachment_url?: string; attachment_name?: string; }
 
 export default function ChatPage() {
   const session = useDashboardSession();
@@ -15,6 +15,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const loadContacts = useCallback(async () => {
@@ -48,13 +50,43 @@ export default function ChatPage() {
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || !active) return;
+    if ((!text && !fileRef.current?.files?.length) || !active) return;
     try {
-      await callFrappe("cclms.api.chat.send_message", { receiver: active, message: text });
+      await callFrappe("cclms.api.chat.send_message", { receiver: active, message: text || "📎 Attachment" });
       setInput("");
       await loadMessages(active);
     } catch {}
   }
+
+  async function uploadAndSend(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !active) return;
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("is_private", "0");
+      body.append("attached_to_doctype", "Chat Message");
+      body.append("attached_to_name", "Chat");
+      const res = await fetch("/api/method/frappe.handler.upload_file", { method: "POST", credentials: "include", body });
+      const data = await res.json();
+      if (data?.message?.file_url) {
+        await callFrappe("cclms.api.chat.send_message", {
+          receiver: active,
+          message: `📎 ${data.message.file_name}`,
+          attachment_url: data.message.file_url,
+          attachment_name: data.message.file_name,
+        });
+        await loadMessages(active);
+      }
+    } catch {}
+    finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  const fileHref = (url: string) => (url.startsWith("/") ? `/api/frappe${url}` : url);
 
   const filtered = contacts.filter((c) => {
     const q = search.trim().toLowerCase();
@@ -131,6 +163,12 @@ export default function ChatPage() {
                   return (
                     <div key={m.name} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-indigo-500 text-white" : "bg-muted"}`}>
+                        {m.attachment_url && (
+                          <a href={fileHref(m.attachment_url)} target="_blank" rel="noopener noreferrer"
+                            className={`mb-1.5 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium underline ${mine ? "bg-white/15 text-white" : "bg-[var(--gc-card)] text-primary"}`}>
+                            <FileText className="h-4 w-4" /> {m.attachment_name || "Attachment"}
+                          </a>
+                        )}
                         <div className="whitespace-pre-wrap break-words">{m.message}</div>
                         <div className={`mt-1 text-[10px] ${mine ? "text-indigo-100" : "text-muted"}`}>
                           {m.creation ? new Date(m.creation).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
@@ -143,6 +181,10 @@ export default function ChatPage() {
               </div>
 
               <form onSubmit={send} className="flex items-center gap-2 border-t border-border p-3">
+                <input ref={fileRef} type="file" className="hidden" onChange={uploadAndSend} />
+                <button type="button" className="gc-btn gc-btn-ghost h-9 w-9 p-0" onClick={() => fileRef.current?.click()} disabled={uploading} title="Attach file">
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                </button>
                 <input
                   className="gc-input flex-1"
                   placeholder="Type a message…"
