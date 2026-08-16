@@ -3,13 +3,15 @@ import { User, Save, Check, Moon, Sun, Lock, Palette, Loader2 } from "lucide-rea
 import { callFrappe } from "../lib/frappe";
 import { useDashboardSession } from "../lib/session";
 
-const THEMES = [
-  { id: "dark", label: "Dark", swatch: "#111111", dark: true },
-  { id: "light", label: "Light", swatch: "#ffffff", dark: false },
-  { id: "lavender", label: "Lavender", swatch: "#9c6fd6", dark: true },
-  { id: "pink", label: "Baby Pink", swatch: "#ec6fa3", dark: true },
-  { id: "ocean", label: "Ocean Blue", swatch: "#1e88c7", dark: true },
-  { id: "slate", label: "Slate", swatch: "#1e2530", dark: true },
+const ACCENTS = [
+  { id: "default", label: "Emerald", primary: "#10b981", secondary: "#84cc16" },
+  { id: "royal", label: "Royal Blue", primary: "#2563eb", secondary: "#38bdf8" },
+  { id: "lavender", label: "Lavender", primary: "#9c6fd6", secondary: "#818cf8" },
+  { id: "pink", label: "Baby Pink", primary: "#ec6fa3", secondary: "#f472b6" },
+  { id: "ocean", label: "Ocean", primary: "#0ea5e9", secondary: "#2dd4bf" },
+  { id: "slate", label: "Slate", primary: "#64748b", secondary: "#94a3b8" },
+  { id: "sunset", label: "Sunset", primary: "#f97316", secondary: "#ef4444" },
+  { id: "crimson", label: "Crimson", primary: "#dc2626", secondary: "#f97316" },
 ];
 
 export default function SettingsPage() {
@@ -29,13 +31,27 @@ export default function SettingsPage() {
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState("");
 
-  const [theme, setTheme] = useState(() => localStorage.getItem("gc-theme") || "dark");
+  const [mode, setMode] = useState(() => {
+    const t = localStorage.getItem("gc-theme");
+    const m = localStorage.getItem("gc-mode");
+    if (m) return m;
+    return t === "light" ? "light" : "dark";
+  });
+  const [accent, setAccent] = useState(() => localStorage.getItem("gc-accent") || "default");
 
   useEffect(() => { setFullName(session?.full_name || ""); setEmail(session?.user || ""); }, [session]);
 
-  function applyTheme(t: string) {
-    setTheme(t);
-    localStorage.setItem("gc-theme", t);
+  function applyMode(m: string) {
+    setMode(m);
+    localStorage.setItem("gc-mode", m);
+    localStorage.removeItem("gc-theme");
+    window.dispatchEvent(new Event("gc-theme-change"));
+  }
+
+  function applyAccent(a: string) {
+    setAccent(a);
+    localStorage.setItem("gc-accent", a);
+    localStorage.removeItem("gc-theme");
     window.dispatchEvent(new Event("gc-theme-change"));
   }
 
@@ -140,18 +156,40 @@ export default function SettingsPage() {
         {/* Appearance */}
         <div className="rounded-lg border border-border bg-[var(--gc-card)] p-5">
           <h3 className="mb-4 flex items-center gap-2 text-[15px] font-semibold"><Palette className="h-4 w-4" /> Appearance</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {THEMES.map((t) => (
+
+          {/* Mode: dark / light */}
+          <div className="mb-4 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => applyMode("dark")}
+              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${mode === "dark" ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+            >
+              <Moon className="h-4 w-4" /> Dark Mode
+            </button>
+            <button
+              type="button"
+              onClick={() => applyMode("light")}
+              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${mode === "light" ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+            >
+              <Sun className="h-4 w-4" /> Light Mode
+            </button>
+          </div>
+
+          {/* Accent variants with primary + secondary swatches */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {ACCENTS.map((a) => (
               <button
-                key={t.id}
+                key={a.id}
                 type="button"
-                onClick={() => applyTheme(t.id)}
-                className={`flex items-center gap-3 rounded-lg border p-3 text-sm transition-colors ${theme === t.id ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+                onClick={() => applyAccent(a.id)}
+                className={`rounded-lg border p-3 text-center transition-colors ${accent === a.id ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+                title={`${a.label} · primary ${a.primary} · secondary ${a.secondary}`}
               >
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full" style={{ background: t.dark ? t.swatch : t.swatch, border: "1px solid rgba(0,0,0,0.15)" }}>
-                  {t.id === "dark" ? <Moon className="h-4 w-4" style={{ color: "#ddd" }} /> : t.id === "light" ? <Sun className="h-4 w-4" /> : null}
+                <div className="mb-2 flex justify-center gap-1.5">
+                  <span className="h-5 w-5 rounded-full" style={{ background: a.primary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Primary ${a.primary}`} />
+                  <span className="h-5 w-5 rounded-full" style={{ background: a.secondary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Secondary ${a.secondary}`} />
                 </div>
-                {t.label}
+                <div className="text-xs font-medium">{a.label}</div>
               </button>
             ))}
           </div>

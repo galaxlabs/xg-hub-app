@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDashboardSession } from "../lib/session";
 import { callFrappe } from "../lib/frappe";
 import { syncFollowUps } from "../lib/leadCache";
+import BusinessHours, { type OpeningHourRow } from "../components/BusinessHours";
 
 type FollowUp = {
   name?: string;
@@ -83,7 +84,8 @@ export default function FollowUpsPage() {
     business_name: "", business_phone: "", contact: "", follow_up_time: "", priority: "Normal",
     business_type: "", owner_name: "", email: "", personal_cell_phone: "", company: "",
     operating_company: "", business_address: "", city: "", state: "", state_code: "",
-    zip_code: "", country: "", website_url: "", source_url: "", notes: "",
+    zip_code: "", country: "",     website_url: "", source_url: "", notes: "",
+    opening_hours: [] as OpeningHourRow[],
   });
 
   async function createFollowUp(e: React.FormEvent) {
@@ -112,6 +114,7 @@ export default function FollowUpsPage() {
         website_url: newFu.website_url,
         source_url: newFu.source_url,
         notes: newFu.notes,
+        opening_hours: newFu.opening_hours,
       });
       setShowCreate(false);
       setNewFu({
@@ -119,6 +122,7 @@ export default function FollowUpsPage() {
         business_type: "", owner_name: "", email: "", personal_cell_phone: "", company: "",
         operating_company: "", business_address: "", city: "", state: "", state_code: "",
         zip_code: "", country: "", website_url: "", source_url: "", notes: "",
+        opening_hours: [],
       });
       await load();
     } catch (e: any) {
@@ -233,6 +237,9 @@ export default function FollowUpsPage() {
                 <input className="gc-input mt-1 w-full" value={newFu.source_url} onChange={(e) => setNewFu({ ...newFu, source_url: e.target.value })} /></div>
               <div className="sm:col-span-2"><label className="text-xs text-muted">Notes</label>
                 <textarea rows={2} className="gc-input mt-1 w-full" value={newFu.notes} onChange={(e) => setNewFu({ ...newFu, notes: e.target.value })} /></div>
+              <div className="sm:col-span-2">
+                <BusinessHours value={newFu.opening_hours} onChange={(rows) => setNewFu({ ...newFu, opening_hours: rows })} />
+              </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" className="gc-btn gc-btn-ghost" onClick={() => setShowCreate(false)}>Cancel</button>

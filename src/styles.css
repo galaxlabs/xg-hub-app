@@ -63,26 +63,146 @@
   --gc-primary-strong: hsl(84, 72%, 56%);
 }
 
-/* ═══ Experience themes — accent overrides (applied with .dark) ═══ */
-.theme-lavender {
-  --primary:       275 80% 64%;
+/* ═══════════════════════════════════════════════════════════════
+   Experience themes — accent variants (primary + secondary) that
+   also recolor the sidebar. Applied as .accent-<name> on the root,
+   combined with .dark (dark mode) or no .dark (light mode).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Default · Emerald ─────────────────────────────────────────── */
+.accent-default {
+  --primary: 163 68% 38%;
+  --gc-secondary: hsl(84, 72%, 54%);
+  --gc-primary-strong: hsl(163, 68%, 38%);
+  --gc-sidebar: hsl(162, 30%, 15%);
+  --gc-sidebar-border: hsl(161, 24%, 21%);
+  --gc-sidebar-primary: hsl(84, 72%, 54%);
+  --gc-sidebar-primary-text: hsl(162, 30%, 12%);
+}
+.dark.accent-default {
+  --primary: 84 72% 56%;
+  --gc-primary-strong: hsl(84, 72%, 56%);
+  --gc-sidebar: hsl(162, 32%, 8%);
+  --gc-sidebar-border: hsl(162, 18%, 19%);
+}
+
+/* ── Royal · Blue ──────────────────────────────────────────────── */
+.accent-royal {
+  --primary: 221 83% 53%;
+  --gc-secondary: hsl(199, 89%, 48%);
+  --gc-primary-strong: hsl(221, 83%, 45%);
+  --gc-sidebar: hsl(224, 35%, 14%);
+  --gc-sidebar-border: hsl(224, 28%, 22%);
+  --gc-sidebar-primary: hsl(221, 83%, 62%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-royal {
+  --primary: 217 91% 60%;
+  --gc-primary-strong: hsl(217, 91%, 60%);
+  --gc-sidebar: hsl(224, 38%, 8%);
+  --gc-sidebar-border: hsl(224, 30%, 16%);
+}
+
+/* ── Lavender · Purple ─────────────────────────────────────────── */
+.accent-lavender {
+  --primary: 275 80% 55%;
+  --gc-secondary: hsl(230, 60%, 55%);
+  --gc-primary-strong: hsl(275, 80%, 50%);
+  --gc-sidebar: hsl(270, 35%, 14%);
+  --gc-sidebar-border: hsl(270, 26%, 22%);
+  --gc-sidebar-primary: hsl(275, 80%, 66%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-lavender {
+  --primary: 275 80% 64%;
   --gc-primary-strong: hsl(275, 80%, 64%);
-  --gc-sidebar-primary: hsl(275, 80%, 64%);
+  --gc-sidebar: hsl(270, 38%, 9%);
+  --gc-sidebar-border: hsl(270, 28%, 17%);
 }
-.theme-pink {
-  --primary:       335 75% 58%;
-  --gc-primary-strong: hsl(335, 75%, 58%);
-  --gc-sidebar-primary: hsl(335, 75%, 58%);
+
+/* ── Pink ──────────────────────────────────────────────────────── */
+.accent-pink {
+  --primary: 335 75% 55%;
+  --gc-secondary: hsl(340, 90%, 55%);
+  --gc-primary-strong: hsl(335, 75%, 48%);
+  --gc-sidebar: hsl(338, 35%, 15%);
+  --gc-sidebar-border: hsl(338, 26%, 23%);
+  --gc-sidebar-primary: hsl(335, 75%, 66%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
 }
-.theme-ocean {
-  --primary:       200 85% 45%;
-  --gc-primary-strong: hsl(200, 85%, 45%);
-  --gc-sidebar-primary: hsl(200, 85%, 45%);
+.dark.accent-pink {
+  --primary: 335 75% 62%;
+  --gc-primary-strong: hsl(335, 75%, 62%);
+  --gc-sidebar: hsl(338, 40%, 9%);
+  --gc-sidebar-border: hsl(338, 30%, 17%);
 }
-.theme-slate {
-  --primary:       215 20% 40%;
-  --gc-primary-strong: hsl(215, 20%, 40%);
-  --gc-sidebar-primary: hsl(215, 20%, 40%);
+
+/* ── Ocean · Teal ──────────────────────────────────────────────── */
+.accent-ocean {
+  --primary: 187 90% 40%;
+  --gc-secondary: hsl(199, 89%, 48%);
+  --gc-primary-strong: hsl(187, 90%, 36%);
+  --gc-sidebar: hsl(190, 40%, 13%);
+  --gc-sidebar-border: hsl(190, 30%, 21%);
+  --gc-sidebar-primary: hsl(187, 90%, 52%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-ocean {
+  --primary: 187 90% 48%;
+  --gc-primary-strong: hsl(187, 90%, 48%);
+  --gc-sidebar: hsl(190, 45%, 8%);
+  --gc-sidebar-border: hsl(190, 32%, 16%);
+}
+
+/* ── Slate · Gray-Blue ─────────────────────────────────────────── */
+.accent-slate {
+  --primary: 215 20% 45%;
+  --gc-secondary: hsl(217, 33%, 60%);
+  --gc-primary-strong: hsl(215, 20%, 42%);
+  --gc-sidebar: hsl(220, 18%, 15%);
+  --gc-sidebar-border: hsl(220, 14%, 23%);
+  --gc-sidebar-primary: hsl(217, 33%, 66%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-slate {
+  --primary: 215 25% 62%;
+  --gc-primary-strong: hsl(215, 25%, 62%);
+  --gc-sidebar: hsl(220, 20%, 9%);
+  --gc-sidebar-border: hsl(220, 15%, 17%);
+}
+
+/* ── Sunset · Orange ───────────────────────────────────────────── */
+.accent-sunset {
+  --primary: 25 95% 50%;
+  --gc-secondary: hsl(340, 90%, 55%);
+  --gc-primary-strong: hsl(25, 95%, 45%);
+  --gc-sidebar: hsl(20, 35%, 14%);
+  --gc-sidebar-border: hsl(20, 26%, 22%);
+  --gc-sidebar-primary: hsl(25, 95%, 58%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-sunset {
+  --primary: 30 100% 58%;
+  --gc-primary-strong: hsl(30, 100%, 58%);
+  --gc-sidebar: hsl(20, 40%, 9%);
+  --gc-sidebar-border: hsl(20, 28%, 17%);
+}
+
+/* ── Crimson · Red ─────────────────────────────────────────────── */
+.accent-crimson {
+  --primary: 350 75% 50%;
+  --gc-secondary: hsl(25, 95%, 53%);
+  --gc-primary-strong: hsl(350, 75%, 45%);
+  --gc-sidebar: hsl(352, 35%, 14%);
+  --gc-sidebar-border: hsl(352, 26%, 22%);
+  --gc-sidebar-primary: hsl(350, 75%, 62%);
+  --gc-sidebar-primary-text: hsl(0, 0%, 100%);
+}
+.dark.accent-crimson {
+  --primary: 350 75% 58%;
+  --gc-primary-strong: hsl(350, 75%, 58%);
+  --gc-sidebar: hsl(352, 40%, 9%);
+  --gc-sidebar-border: hsl(352, 30%, 17%);
 }
 
 @layer base {
