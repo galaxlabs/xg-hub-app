@@ -35,8 +35,44 @@ export const fetchOverview = (p: Record<string, unknown> = {}) =>
 export const fetchCompanyBreakdown = (p: Record<string, unknown> = {}) =>
   callFrappe<CompanyRow[]>(`${PR}.company_breakdown`, p);
 
-export const fetchAgentBreakdown = (p: Record<string, unknown> = {}) =>
-  callFrappe<AgentRow[]>(`${PR}.agent_breakdown`, p);
+export const fetchAgentBreakdown = async (p: Record<string, unknown> = {}) => {
+  const rows = await callFrappe<Record<string, any>[]>(`${PR}.agent_breakdown`, p);
+  // Backend returns { agent, approved, agreement_sent, signed, converted, installed,
+  // rejected, cancelled, submitted, total_deals, net_signed }. Map to the frontend's
+  // AgentRow shape ({ display_name, total_* }) and drop rows with no activity.
+  const out: AgentRow[] = [];
+  for (const r of rows || []) {
+    const total = (r.total_deals ?? r.total ?? 0) as number;
+    const approved = r.approved ?? r.total_approved ?? 0;
+    const signed = r.signed ?? r.total_signs ?? 0;
+    const rejected = r.rejected ?? r.total_rejected ?? 0;
+    const submitted = r.submitted ?? r.total_submitted ?? total;
+    const converted = r.converted ?? r.total_converted ?? 0;
+    const installed = r.installed ?? r.total_installed ?? 0;
+    if ((total || approved || signed || rejected || submitted || converted || installed) === 0) {
+      continue; // only show agents that have records/data
+    }
+    const agent = r.agent ?? r.display_name ?? r.agent_name ?? "Unassigned";
+    const row: AgentRow = {
+      agent,
+      display_name: r.display_name ?? r.agent_name ?? agent,
+      company: r.company ?? "",
+      total_submitted: Number(submitted) || 0,
+      total_approved: Number(approved) || 0,
+      total_agreement_sent: Number(r.agreement_sent ?? r.total_agreement_sent ?? 0) || 0,
+      total_signs: Number(signed) || 0,
+      total_converted: Number(converted) || 0,
+      total_installed: Number(installed) || 0,
+      total_rejected: Number(rejected) || 0,
+      total_cancelled: Number(r.cancelled ?? r.total_cancelled ?? 0) || 0,
+      net_signed: Number(r.net_signed ?? signed ?? 0) || 0,
+      sign_rate: total ? Math.round((signed / total) * 1000) / 10 : 0,
+      approval_rate: total ? Math.round((approved / total) * 1000) / 10 : 0,
+    };
+    out.push(row);
+  }
+  return out;
+};
 
 export const fetchMultiTrend = (p: Record<string, unknown> = {}) =>
   callFrappe<TrendResponse>(`${PR}.multi_trend`, p);
