@@ -3,9 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════════════════════
+/* ===============================================================
    XG System — Professional Dashboard Design System
-   ═══════════════════════════════════════════════════════════════ */
+   =============================================================== */
 
 :root {
   --radius:        8px;
@@ -63,13 +63,13 @@
   --gc-primary-strong: hsl(84, 72%, 56%);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ===============================================================
    Experience themes — accent variants (primary + secondary) that
    also recolor the sidebar. Applied as .accent-<name> on the root,
    combined with .dark (dark mode) or no .dark (light mode).
-   ═══════════════════════════════════════════════════════════════ */
+   =============================================================== */
 
-/* ── Default · Emerald ─────────────────────────────────────────── */
+/* -- Default - Emerald ------------------------------------------- */
 .accent-default {
   --primary: 163 68% 38%;
   --gc-secondary: hsl(84, 72%, 54%);
@@ -86,7 +86,7 @@
   --gc-sidebar-border: hsl(162, 18%, 19%);
 }
 
-/* ── Royal · Blue ──────────────────────────────────────────────── */
+/* -- Royal - Blue ------------------------------------------------ */
 .accent-royal {
   --primary: 221 83% 53%;
   --gc-secondary: hsl(199, 89%, 48%);
@@ -103,7 +103,7 @@
   --gc-sidebar-border: hsl(224, 30%, 16%);
 }
 
-/* ── Lavender · Purple ─────────────────────────────────────────── */
+/* -- Lavender - Purple ------------------------------------------- */
 .accent-lavender {
   --primary: 275 80% 55%;
   --gc-secondary: hsl(230, 60%, 55%);
@@ -120,7 +120,7 @@
   --gc-sidebar-border: hsl(270, 28%, 17%);
 }
 
-/* ── Pink ──────────────────────────────────────────────────────── */
+/* -- Pink -------------------------------------------------------- */
 .accent-pink {
   --primary: 335 75% 55%;
   --gc-secondary: hsl(340, 90%, 55%);
@@ -137,7 +137,7 @@
   --gc-sidebar-border: hsl(338, 30%, 17%);
 }
 
-/* ── Ocean · Teal ──────────────────────────────────────────────── */
+/* -- Ocean - Teal ------------------------------------------------ */
 .accent-ocean {
   --primary: 187 90% 40%;
   --gc-secondary: hsl(199, 89%, 48%);
@@ -154,7 +154,7 @@
   --gc-sidebar-border: hsl(190, 32%, 16%);
 }
 
-/* ── Slate · Gray-Blue ─────────────────────────────────────────── */
+/* -- Slate - Gray-Blue ------------------------------------------- */
 .accent-slate {
   --primary: 215 20% 45%;
   --gc-secondary: hsl(217, 33%, 60%);
@@ -171,7 +171,7 @@
   --gc-sidebar-border: hsl(220, 15%, 17%);
 }
 
-/* ── Sunset · Orange ───────────────────────────────────────────── */
+/* -- Sunset - Orange --------------------------------------------- */
 .accent-sunset {
   --primary: 25 95% 50%;
   --gc-secondary: hsl(340, 90%, 55%);
@@ -188,7 +188,7 @@
   --gc-sidebar-border: hsl(20, 28%, 17%);
 }
 
-/* ── Crimson · Red ─────────────────────────────────────────────── */
+/* -- Crimson - Red ----------------------------------------------- */
 .accent-crimson {
   --primary: 350 75% 50%;
   --gc-secondary: hsl(25, 95%, 53%);
@@ -390,7 +390,7 @@
   .gc-chip:hover { color: hsl(var(--text)); border-color: hsl(var(--border-strong)); }
   .gc-chip.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-fore)); }
 
-  /* ── Modal ─────────────────────────────────────────────────────────── */
+  /* -- Modal ----------------------------------------------------------- */
   .gc-modal-overlay {
     position: fixed; inset: 0; z-index: 60;
     background: rgba(0,0,0,0.45);
@@ -430,7 +430,7 @@
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 
-  /* ── Tabs ──────────────────────────────────────────────────────────── */
+  /* -- Tabs ------------------------------------------------------------ */
   .gc-tabs {
     display: flex; align-items: center; gap: 2px;
   }
@@ -454,7 +454,7 @@
   }
   .gc-tab-count.active { background: hsl(var(--primary) / 0.2); color: hsl(var(--primary)); }
 
-  /* ── Icon Button ───────────────────────────────────────────────────── */
+  /* -- Icon Button ----------------------------------------------------- */
   .gc-icon-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
     padding: 5px 8px;
@@ -470,11 +470,11 @@
   .gc-icon-btn.danger { color: #ef4444; border-color: rgba(239,68,68,0.3); }
   .gc-icon-btn.danger:hover { background: rgba(239,68,68,0.08); border-color: #ef4444; }
 
-  /* ── Danger Button ─────────────────────────────────────────────────── */
+  /* -- Danger Button --------------------------------------------------- */
   .gc-btn-danger { @apply gc-btn; background:#ef4444; color:#fff; border-color:#ef4444; }
   .gc-btn-danger:hover { background:#dc2626; }
 
-  /* ── KPI Card ──────────────────────────────────────────────────────── */
+  /* -- KPI Card -------------------------------------------------------- */
   .gc-kpi-card {
     background: hsl(var(--primary));
     border-radius: var(--radius-lg);
@@ -487,7 +487,7 @@
   .gc-kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; }
   .gc-kpi-sub   { font-size: 11px; opacity: 0.65; margin-top: 2px; }
 
-  /* ── Timeline ──────────────────────────────────────────────────────── */
+  /* -- Timeline -------------------------------------------------------- */
   .gc-timeline { display: flex; flex-direction: column; gap: 8px; position: relative; }
   .gc-timeline::before {
     content: "";
@@ -506,7 +506,7 @@
     z-index: 1;
   }
 
-  /* ── Project Card ──────────────────────────────────────────────────── */
+  /* -- Project Card ---------------------------------------------------- */
   .gc-project-card {
     background: hsl(var(--card));
     border-radius: var(--radius-lg);
@@ -522,7 +522,7 @@
     transform: translateY(-1px);
   }
 
-  /* ── Gantt Chart ───────────────────────────────────────────────────── */
+  /* -- Gantt Chart ----------------------------------------------------- */
   .gc-gantt { width: 100%; min-width: 600px; }
   .gc-gantt-header {
     display: flex; align-items: center;

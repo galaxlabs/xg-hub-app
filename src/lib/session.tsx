@@ -6,6 +6,7 @@ export interface DashboardSession {
   user: string;
   full_name: string | null;
   roles: string[];
+  timezone?: string | null;
 }
 
 export async function fetchDashboardSession(): Promise<DashboardSession> {

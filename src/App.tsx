@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 
 import OverviewPage from "./pages/OverviewPage";
+import DashboardPage from "./pages/DashboardPage";
 import SignsPage from "./pages/SignsPage";
 import AgentsPage from "./pages/AgentsPage";
 import PipelinePage from "./pages/PipelinePage";
@@ -61,6 +62,9 @@ import MeetingsPage from "./pages/MeetingsPage";
 import ChatPage from "./pages/ChatPage";
 
 import { loginFrappe, logoutFrappe } from "./lib/frappe";
+import { fetchThemeConfig, setMyTimezone } from "./lib/api";
+import type { PortalTheme, TimezoneOption } from "./lib/api";
+import { themeStyleVars } from "./lib/theme";
 
 import {
   DashboardSessionProvider,
@@ -238,20 +242,53 @@ function RouteGate({ path, title, roles, children }: { path: string; title: stri
    return children;
 }
 
-function TopBarClock() {
+function TopBarClock({ timezone, timezones, onSelect }: {
+  timezone?: string | null;
+  timezones?: TimezoneOption[];
+  onSelect?: (tz: string) => void;
+}) {
   const [now, setNow] = useState(() => new Date());
+  const [open, setOpen] = useState(false);
+  const [localTz, setLocalTz] = useState(() => localStorage.getItem("gc-tz") || "");
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true, timeZone: "America/New_York" });
+  const tz = localTz || timezone || "America/New_York";
+  const label = timezones?.find((z) => z.value === tz)?.label || tz;
+  const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true, timeZone: tz });
+  const date = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: tz });
   return (
-    <button
-      className="hidden items-center gap-1.5 rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] px-3 py-2 text-xs text-[var(--gc-muted)] md:flex"
-      title="Eastern (New York)"
-    >
-      <Clock className="h-3.5 w-3.5" /> {time} <span className="opacity-70">Eastern (NY)</span>
-    </button>
+    <div className="relative hidden md:block">
+      <button
+        className="flex items-center gap-1.5 rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] px-3 py-2 text-xs text-[var(--gc-muted)]"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <Clock className="h-3.5 w-3.5" />
+        <span className="flex flex-col items-start leading-none">
+          <span>{time} <span className="opacity-70">{date}</span></span>
+          <span className="mt-0.5 text-[10px] opacity-70">{label}</span>
+        </span>
+      </button>
+      {open && timezones && timezones.length > 0 && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-10 z-40 min-w-56 overflow-hidden rounded-lg border border-border bg-[var(--gc-card)] shadow-xl">
+            <div className="border-b border-border px-3 py-2 text-xs font-semibold">Choose your timezone</div>
+            {timezones.map((z) => (
+              <button
+                key={z.value}
+                className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-muted/50 ${z.value === tz ? "font-semibold" : ""}`}
+                onClick={() => { setLocalTz(z.value); onSelect?.(z.value); setOpen(false); }}
+              >
+                <span>{z.label}</span>
+                <span className="text-muted">{z.value.replace("America/", "").replace("Pacific/", "Hawaii ")}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -259,23 +296,39 @@ function DashboardShell() {
   const session = useDashboardSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [mode, setMode] = useState(() => {
+
+  // Backend-driven theme: a theme key is "accentId:mode" (e.g. "pink:light").
+  const [themeKey, setThemeKey] = useState(() => {
+    const stored = localStorage.getItem("gc-theme-key");
+    if (stored) return stored;
     const t = localStorage.getItem("gc-theme");
     const m = localStorage.getItem("gc-mode");
-    if (m) return m;
-    return t === "light" ? "light" : "dark";
+    if (t && t !== "dark" && t !== "light") return `${t}:${m === "light" ? "light" : "dark"}`;
+    return `default:${m === "light" ? "light" : "dark"}`;
   });
-  const [accent, setAccent] = useState(() => localStorage.getItem("gc-accent") || "default");
-  const darkMode = mode !== "light";
+  const [themeConfig, setThemeConfig] = useState<{ themes: PortalTheme[]; timezones: TimezoneOption[] } | null>(null);
+
+  useEffect(() => {
+    fetchThemeConfig()
+      .then((cfg) => setThemeConfig(cfg))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     const onChange = () => {
-      const t = localStorage.getItem("gc-theme");
-      setMode(localStorage.getItem("gc-mode") || (t === "light" ? "light" : "dark"));
-      setAccent(localStorage.getItem("gc-accent") || "default");
+      const stored = localStorage.getItem("gc-theme-key");
+      if (stored) setThemeKey(stored);
     };
     window.addEventListener("gc-theme-change", onChange);
     return () => window.removeEventListener("gc-theme-change", onChange);
   }, []);
+
+  const [accentId, mode] = themeKey.split(":") as [string, string];
+  const darkMode = mode !== "light";
+  const activeTheme = themeConfig?.themes.find((t) => t.id === accentId && t.mode === (darkMode ? "dark" : "light"))
+    ?? themeConfig?.themes.find((t) => t.id === accentId)
+    ?? themeConfig?.themes[0];
+  const themeVars = activeTheme ? themeStyleVars(activeTheme) : {};
   const [navSearch, setNavSearch] = useState("");
 
   const handleLogout = async () => {
@@ -301,7 +354,7 @@ function DashboardShell() {
   const pageTitle = PAGE_TITLES[location.pathname] ?? activeItem?.label ?? "XG Hub";
 
   return (
-    <div className={`${darkMode ? "dark" : ""} accent-${accent}`}>
+    <div className={`${darkMode ? "dark" : ""}`} style={themeVars as React.CSSProperties}>
       <div className="min-h-screen bg-[var(--gc-bg)] text-[var(--gc-text)]">
         {sidebarOpen ? <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} /> : null}
 
@@ -378,16 +431,23 @@ function DashboardShell() {
                 </div>
               </div>
                <div className="flex items-center gap-2">
-                 <TopBarClock />
+                 <TopBarClock
+                   timezone={session?.timezone}
+                   timezones={themeConfig?.timezones}
+                   onSelect={(tz) => {
+                     localStorage.setItem("gc-tz", tz);
+                     setMyTimezone(tz).catch(() => {});
+                   }}
+                 />
                  <div className="hidden rounded-[8px] border border-[var(--gc-border)] bg-[var(--gc-surface)] px-3 py-2 text-xs text-[var(--gc-muted)] md:block">{visibleNav.length} modules enabled</div>
-                <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => { const next = mode === "dark" ? "light" : "dark"; localStorage.setItem("gc-mode", next); localStorage.removeItem("gc-theme"); window.dispatchEvent(new Event("gc-theme-change")); }} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
+                <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => { const next = darkMode ? "light" : "dark"; const [a] = themeKey.split(":"); localStorage.setItem("gc-theme-key", `${a}:${next}`); window.dispatchEvent(new Event("gc-theme-change")); }} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
               </div>
             </div>
           </header>
 
           <main className="min-h-[calc(100vh-4rem)] p-4 md:p-8">
             <Routes>
-              <Route path="/" element={<OverviewPage />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/leads" element={<RouteGate path="/leads" title="ATM Leads" roles={ROLE.cclms}><LeadsPage /></RouteGate>} />
               <Route path="/followups" element={<RouteGate path="/followups" title="Follow-ups" roles={ROLE.sales}><FollowUpsPage /></RouteGate>} />
               <Route path="/tasks" element={<RouteGate path="/tasks" title="Tasks" roles={ROLE.sales}><TasksPage /></RouteGate>} />

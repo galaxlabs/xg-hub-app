@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     build: {
       chunkSizeWarningLimit: 900,
+      cssMinify: false,
     },
     server: {
       proxy: {

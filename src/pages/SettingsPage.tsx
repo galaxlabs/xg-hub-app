@@ -2,17 +2,18 @@ import { useEffect, useState } from "react";
 import { User, Save, Check, Moon, Sun, Lock, Palette, Loader2 } from "lucide-react";
 import { callFrappe } from "../lib/frappe";
 import { useDashboardSession } from "../lib/session";
+import { fetchThemeConfig } from "../lib/api";
+import type { PortalTheme, TimezoneOption } from "../lib/api";
+import { themeStyleVars } from "../lib/theme";
 
-const ACCENTS = [
-  { id: "default", label: "Emerald", primary: "#10b981", secondary: "#84cc16" },
-  { id: "royal", label: "Royal Blue", primary: "#2563eb", secondary: "#38bdf8" },
-  { id: "lavender", label: "Lavender", primary: "#9c6fd6", secondary: "#818cf8" },
-  { id: "pink", label: "Baby Pink", primary: "#ec6fa3", secondary: "#f472b6" },
-  { id: "ocean", label: "Ocean", primary: "#0ea5e9", secondary: "#2dd4bf" },
-  { id: "slate", label: "Slate", primary: "#64748b", secondary: "#94a3b8" },
-  { id: "sunset", label: "Sunset", primary: "#f97316", secondary: "#ef4444" },
-  { id: "crimson", label: "Crimson", primary: "#dc2626", secondary: "#f97316" },
-];
+function getThemeKey() {
+  const stored = localStorage.getItem("gc-theme-key");
+  if (stored) return stored;
+  const t = localStorage.getItem("gc-theme");
+  const m = localStorage.getItem("gc-mode");
+  if (t && t !== "dark" && t !== "light") return `${t}:${m === "light" ? "light" : "dark"}`;
+  return `default:${m === "light" ? "light" : "dark"}`;
+}
 
 export default function SettingsPage() {
   const session = useDashboardSession();
@@ -31,27 +32,24 @@ export default function SettingsPage() {
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState("");
 
-  const [mode, setMode] = useState(() => {
-    const t = localStorage.getItem("gc-theme");
-    const m = localStorage.getItem("gc-mode");
-    if (m) return m;
-    return t === "light" ? "light" : "dark";
-  });
-  const [accent, setAccent] = useState(() => localStorage.getItem("gc-accent") || "default");
+  const [themeKey, setThemeKey] = useState(getThemeKey);
+  const [themes, setThemes] = useState<PortalTheme[]>([]);
+  const [timezones, setTimezones] = useState<TimezoneOption[]>([]);
 
   useEffect(() => { setFullName(session?.full_name || ""); setEmail(session?.user || ""); }, [session]);
 
-  function applyMode(m: string) {
-    setMode(m);
-    localStorage.setItem("gc-mode", m);
-    localStorage.removeItem("gc-theme");
-    window.dispatchEvent(new Event("gc-theme-change"));
-  }
+  useEffect(() => {
+    fetchThemeConfig()
+      .then((cfg) => { setThemes(cfg.themes || []); setTimezones(cfg.timezones || []); })
+      .catch(() => {});
+  }, []);
 
-  function applyAccent(a: string) {
-    setAccent(a);
-    localStorage.setItem("gc-accent", a);
-    localStorage.removeItem("gc-theme");
+  const [accentId, mode] = themeKey.split(":") as [string, string];
+  const darkMode = mode !== "light";
+
+  function applyTheme(id: string, m: string) {
+    setThemeKey(`${id}:${m}`);
+    localStorage.setItem("gc-theme-key", `${id}:${m}`);
     window.dispatchEvent(new Event("gc-theme-change"));
   }
 
@@ -161,38 +159,60 @@ export default function SettingsPage() {
           <div className="mb-4 grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => applyMode("dark")}
-              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${mode === "dark" ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+              onClick={() => applyTheme(accentId, "dark")}
+              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${darkMode ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
             >
               <Moon className="h-4 w-4" /> Dark Mode
             </button>
             <button
               type="button"
-              onClick={() => applyMode("light")}
-              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${mode === "light" ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+              onClick={() => applyTheme(accentId, "light")}
+              className={`flex items-center justify-center gap-2 rounded-lg border p-3 text-sm transition-colors ${!darkMode ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
             >
               <Sun className="h-4 w-4" /> Light Mode
             </button>
           </div>
 
-          {/* Accent variants with primary + secondary swatches */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {ACCENTS.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => applyAccent(a.id)}
-                className={`rounded-lg border p-3 text-center transition-colors ${accent === a.id ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
-                title={`${a.label} · primary ${a.primary} · secondary ${a.secondary}`}
-              >
-                <div className="mb-2 flex justify-center gap-1.5">
-                  <span className="h-5 w-5 rounded-full" style={{ background: a.primary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Primary ${a.primary}`} />
-                  <span className="h-5 w-5 rounded-full" style={{ background: a.secondary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Secondary ${a.secondary}`} />
-                </div>
-                <div className="text-xs font-medium">{a.label}</div>
-              </button>
-            ))}
-          </div>
+          {/* Backend-driven accent variants */}
+          {themes.length === 0 ? (
+            <p className="py-4 text-center text-xs text-muted">Loading themes…</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {themes
+                .filter((t) => t.mode === (darkMode ? "dark" : "light"))
+                .map((t) => {
+                  const vars = themeStyleVars(t);
+                  const active = accentId === t.id;
+                  return (
+                    <button
+                      key={`${t.id}-${t.mode}`}
+                      type="button"
+                      onClick={() => applyTheme(t.id, t.mode)}
+                      className={`overflow-hidden rounded-lg border text-left transition-colors ${active ? "border-indigo-500" : "border-border hover:border-foreground/30"}`}
+                    >
+                      {/* mini preview using the theme's actual colors */}
+                      <div className="flex h-16" style={{ background: t.workspace }}>
+                        <div className="w-1/3" style={{ background: t.sidebar }}>
+                          <div className="m-2 h-3 w-3 rounded-sm" style={{ background: t.sidebar_primary }} />
+                        </div>
+                        <div className="flex-1 p-2">
+                          <div className="mb-1 h-2 w-2/3 rounded-sm" style={{ background: t.primary }} />
+                          <div className="mb-1 h-2 w-1/2 rounded-sm" style={{ background: t.secondary }} />
+                          <div className="h-2 w-3/4 rounded-sm" style={{ background: t.border }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between px-2 py-1.5">
+                        <span className="text-xs font-medium">{t.label}</span>
+                        <span className="flex gap-1">
+                          <span className="h-3 w-3 rounded-full" style={{ background: t.primary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Primary ${t.primary}`} />
+                          <span className="h-3 w-3 rounded-full" style={{ background: t.secondary, border: "1px solid rgba(0,0,0,0.15)" }} title={`Secondary ${t.secondary}`} />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </div>
     </div>

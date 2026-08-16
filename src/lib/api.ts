@@ -693,3 +693,57 @@ export const fetchActivityEntryBreakdown = (p: { start_date: string; end_date: s
 
 export const fetchCallAnalysis = (p: { start_date: string; end_date: string; employee?: string }) =>
   callFrappe<CallAnalysis>(`${AR}.call_analysis`, p as Record<string, unknown>);
+
+// ── Theme config (backend-driven) ─────────────────────────────────────────
+export interface PortalTheme {
+  id: string;
+  label: string;
+  mode: "light" | "dark";
+  primary: string;
+  secondary: string;
+  sidebar: string;
+  sidebar_border: string;
+  sidebar_primary: string;
+  sidebar_text: string;
+  workspace: string;
+  card: string;
+  surface: string;
+  text: string;
+  muted: string;
+  border: string;
+}
+
+export interface TimezoneOption {
+  value: string;
+  label: string;
+}
+
+export const fetchThemeConfig = () =>
+  callFrappe<{ themes: PortalTheme[]; timezones: TimezoneOption[] }>(
+    "cclms.api.crm_portal.get_theme_config"
+  );
+
+export const setMyTimezone = (timezone: string) =>
+  callFrappe<{ timezone: string }>("cclms.api.crm_portal.set_my_timezone", { timezone });
+
+// ── Unified dashboard stats ──────────────────────────────────────────────
+export interface DashboardStats {
+  followups: {
+    total: number; scheduled: number; due: number; completed: number;
+    missed: number; today_due: number; completion_rate: number;
+  };
+  hrms: { present: number; absent: number; on_leave: number; active_employees: number };
+  activity: {
+    active_minutes: number; idle_minutes: number; unauthorized_hits: number;
+    avg_productivity: number; tracked_calls: number; active_hours: number; log_days: number;
+  };
+  calls: {
+    total_calls: number; answered: number; missed: number;
+    talk_seconds: number; talk_minutes: number; daily_target: number; met_days: number;
+    days: { date: string; total_calls: number; answered: number; target: number; met: boolean }[];
+  };
+  sales_agent: string | null;
+}
+
+export const fetchDashboardStats = (p: { from_date: string; to_date: string }) =>
+  callFrappe<DashboardStats>("cclms.api.dashboard_stats.dashboard_stats", p);
