@@ -241,9 +241,10 @@ function DashboardShell() {
   const session = useDashboardSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("gc-theme") === "dark");
+  const [theme, setTheme] = useState(() => localStorage.getItem("gc-theme") || "dark");
+  const darkMode = theme !== "light";
   useEffect(() => {
-    const onChange = () => setDarkMode(localStorage.getItem("gc-theme") === "dark");
+    const onChange = () => setTheme(localStorage.getItem("gc-theme") || "dark");
     window.addEventListener("gc-theme-change", onChange);
     return () => window.removeEventListener("gc-theme-change", onChange);
   }, []);
@@ -272,7 +273,7 @@ function DashboardShell() {
   const pageTitle = PAGE_TITLES[location.pathname] ?? activeItem?.label ?? "XG Hub";
 
   return (
-    <div className={darkMode ? "dark" : ""}>
+    <div className={`${darkMode ? "dark" : ""} ${theme !== "dark" && theme !== "light" ? `theme-${theme}` : ""}`}>
       <div className="min-h-screen bg-[var(--gc-bg)] text-[var(--gc-text)]">
         {sidebarOpen ? <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} /> : null}
 
@@ -350,7 +351,7 @@ function DashboardShell() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden rounded-[8px] border border-[var(--gc-border)] bg-[var(--gc-surface)] px-3 py-2 text-xs text-[var(--gc-muted)] md:block">{visibleNav.length} modules enabled</div>
-                <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => setDarkMode((d) => !d)} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
+                <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => { const next = theme === "dark" ? "light" : "dark"; localStorage.setItem("gc-theme", next); window.dispatchEvent(new Event("gc-theme-change")); }} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
               </div>
             </div>
           </header>

@@ -79,7 +79,12 @@ export default function FollowUpsPage() {
   }
 
   const [showCreate, setShowCreate] = useState(false);
-  const [newFu, setNewFu] = useState({ business_name: "", business_phone: "", follow_up_time: "" });
+  const [newFu, setNewFu] = useState({
+    business_name: "", business_phone: "", contact: "", follow_up_time: "", priority: "Normal",
+    business_type: "", owner_name: "", email: "", personal_cell_phone: "", company: "",
+    operating_company: "", business_address: "", city: "", state: "", state_code: "",
+    zip_code: "", country: "", website_url: "", source_url: "", notes: "",
+  });
 
   async function createFollowUp(e: React.FormEvent) {
     e.preventDefault();
@@ -88,11 +93,33 @@ export default function FollowUpsPage() {
       await callFrappe("cclms.api.follow_up.schedule_follow_up", {
         lead_name: null,
         follow_up_time: newFu.follow_up_time ? new Date(newFu.follow_up_time).toISOString().slice(0, 19).replace("T", " ") : null,
-        priority: "Normal",
-        notes: newFu.business_phone ? `Phone: ${newFu.business_phone}` : "",
+        priority: newFu.priority || "Normal",
+        business_name: newFu.business_name,
+        business_phone: newFu.business_phone || newFu.contact,
+        contact: newFu.contact,
+        company: newFu.company,
+        operating_company: newFu.operating_company,
+        business_type: newFu.business_type,
+        owner_name: newFu.owner_name,
+        email: newFu.email,
+        personal_cell_phone: newFu.personal_cell_phone,
+        business_address: newFu.business_address,
+        city: newFu.city,
+        state: newFu.state,
+        state_code: newFu.state_code,
+        zip_code: newFu.zip_code,
+        country: newFu.country,
+        website_url: newFu.website_url,
+        source_url: newFu.source_url,
+        notes: newFu.notes,
       });
       setShowCreate(false);
-      setNewFu({ business_name: "", business_phone: "", follow_up_time: "" });
+      setNewFu({
+        business_name: "", business_phone: "", contact: "", follow_up_time: "", priority: "Normal",
+        business_type: "", owner_name: "", email: "", personal_cell_phone: "", company: "",
+        operating_company: "", business_address: "", city: "", state: "", state_code: "",
+        zip_code: "", country: "", website_url: "", source_url: "", notes: "",
+      });
       await load();
     } catch (e: any) {
       setError(e.message || "Create failed");
@@ -161,15 +188,51 @@ export default function FollowUpsPage() {
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCreate(false)}>
-          <form onSubmit={createFollowUp} className="w-full max-w-md rounded-lg border border-border bg-[var(--gc-card)] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <form onSubmit={createFollowUp} className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-[var(--gc-card)] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-3 text-base font-semibold">New Follow-up</h2>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><label className="text-xs text-muted">Business Name *</label>
                 <input className="gc-input mt-1 w-full" value={newFu.business_name} onChange={(e) => setNewFu({ ...newFu, business_name: e.target.value })} placeholder="e.g. Sinclair Gas Station" required /></div>
               <div><label className="text-xs text-muted">Business Phone</label>
                 <input className="gc-input mt-1 w-full" value={newFu.business_phone} onChange={(e) => setNewFu({ ...newFu, business_phone: e.target.value })} placeholder="e.g. 5558675309" /></div>
+              <div><label className="text-xs text-muted">Contact (Email/Phone)</label>
+                <input className="gc-input mt-1 w-full" value={newFu.contact} onChange={(e) => setNewFu({ ...newFu, contact: e.target.value })} /></div>
               <div><label className="text-xs text-muted">Follow-up Time</label>
                 <input type="datetime-local" className="gc-input mt-1 w-full" value={newFu.follow_up_time} onChange={(e) => setNewFu({ ...newFu, follow_up_time: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Priority</label>
+                <select className="gc-input mt-1 w-full" value={newFu.priority} onChange={(e) => setNewFu({ ...newFu, priority: e.target.value })}>
+                  {["Low", "Normal", "High", "Urgent"].map((p) => <option key={p} value={p}>{p}</option>)}
+                </select></div>
+              <div><label className="text-xs text-muted">Company (Operating Company)</label>
+                <input className="gc-input mt-1 w-full" value={newFu.company} onChange={(e) => setNewFu({ ...newFu, company: e.target.value })} placeholder="e.g. Rocket Coin" /></div>
+              <div><label className="text-xs text-muted">Owner / Operating Company</label>
+                <input className="gc-input mt-1 w-full" value={newFu.operating_company} onChange={(e) => setNewFu({ ...newFu, operating_company: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Business Type</label>
+                <input className="gc-input mt-1 w-full" value={newFu.business_type} onChange={(e) => setNewFu({ ...newFu, business_type: e.target.value })} placeholder="e.g. Gas Station" /></div>
+              <div><label className="text-xs text-muted">Owner Name</label>
+                <input className="gc-input mt-1 w-full" value={newFu.owner_name} onChange={(e) => setNewFu({ ...newFu, owner_name: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Email</label>
+                <input className="gc-input mt-1 w-full" value={newFu.email} onChange={(e) => setNewFu({ ...newFu, email: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Personal Cell Phone</label>
+                <input className="gc-input mt-1 w-full" value={newFu.personal_cell_phone} onChange={(e) => setNewFu({ ...newFu, personal_cell_phone: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Address</label>
+                <input className="gc-input mt-1 w-full" value={newFu.business_address} onChange={(e) => setNewFu({ ...newFu, business_address: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">City</label>
+                <input className="gc-input mt-1 w-full" value={newFu.city} onChange={(e) => setNewFu({ ...newFu, city: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">State/Province</label>
+                <input className="gc-input mt-1 w-full" value={newFu.state} onChange={(e) => setNewFu({ ...newFu, state: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">State Code</label>
+                <input className="gc-input mt-1 w-full" value={newFu.state_code} onChange={(e) => setNewFu({ ...newFu, state_code: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Zip/Postal Code</label>
+                <input className="gc-input mt-1 w-full" value={newFu.zip_code} onChange={(e) => setNewFu({ ...newFu, zip_code: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Country</label>
+                <input className="gc-input mt-1 w-full" value={newFu.country} onChange={(e) => setNewFu({ ...newFu, country: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Website URL</label>
+                <input className="gc-input mt-1 w-full" value={newFu.website_url} onChange={(e) => setNewFu({ ...newFu, website_url: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Source URL</label>
+                <input className="gc-input mt-1 w-full" value={newFu.source_url} onChange={(e) => setNewFu({ ...newFu, source_url: e.target.value })} /></div>
+              <div className="sm:col-span-2"><label className="text-xs text-muted">Notes</label>
+                <textarea rows={2} className="gc-input mt-1 w-full" value={newFu.notes} onChange={(e) => setNewFu({ ...newFu, notes: e.target.value })} /></div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" className="gc-btn gc-btn-ghost" onClick={() => setShowCreate(false)}>Cancel</button>

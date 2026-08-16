@@ -63,6 +63,28 @@
   --gc-primary-strong: hsl(84, 72%, 56%);
 }
 
+/* ═══ Experience themes — accent overrides (applied with .dark) ═══ */
+.theme-lavender {
+  --primary:       275 80% 64%;
+  --gc-primary-strong: hsl(275, 80%, 64%);
+  --gc-sidebar-primary: hsl(275, 80%, 64%);
+}
+.theme-pink {
+  --primary:       335 75% 58%;
+  --gc-primary-strong: hsl(335, 75%, 58%);
+  --gc-sidebar-primary: hsl(335, 75%, 58%);
+}
+.theme-ocean {
+  --primary:       200 85% 45%;
+  --gc-primary-strong: hsl(200, 85%, 45%);
+  --gc-sidebar-primary: hsl(200, 85%, 45%);
+}
+.theme-slate {
+  --primary:       215 20% 40%;
+  --gc-primary-strong: hsl(215, 20%, 40%);
+  --gc-sidebar-primary: hsl(215, 20%, 40%);
+}
+
 @layer base {
   * { box-sizing: border-box; }
   body {
