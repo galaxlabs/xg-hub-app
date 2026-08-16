@@ -3,12 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, TrendingUp, BarChart3, CheckCircle2,
   PhoneCall, Users, Activity as ActivityIcon, PhoneOutgoing,
+  Compass, BadgeDollarSign, Table2,
 } from "lucide-react";
 import { fetchDashboardStats, thisMonthRange } from "../lib/api";
 import OverviewPage from "./OverviewPage";
 import PipelinePage from "./PipelinePage";
 import AnalyticsPage from "./AnalyticsPage";
 import SignsPage from "./SignsPage";
+import AgentsPage from "./AgentsPage";
+import DirectionPage from "./DirectionPage";
+import ReportsPage from "./ReportsPage";
 import FollowUpStatsTab from "./FollowUpStatsTab";
 import HRMSStatsTab from "./HRMSStatsTab";
 import ActivityStatsTab from "./ActivityStatsTab";
@@ -20,6 +24,9 @@ const TABS = [
   { id: "hrms", label: "HRMS", icon: Users },
   { id: "activity", label: "Activity", icon: ActivityIcon },
   { id: "calls", label: "Calls", icon: PhoneOutgoing },
+  { id: "agents", label: "Agents", icon: BadgeDollarSign },
+  { id: "direction", label: "Direction", icon: Compass },
+  { id: "reports", label: "Reports", icon: Table2 },
   { id: "pipeline", label: "Pipeline", icon: TrendingUp },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "signs", label: "Signs", icon: CheckCircle2 },
@@ -57,6 +64,9 @@ export default function DashboardPage() {
         {tab === "hrms" && <HRMSStatsTab stats={stats} />}
         {tab === "activity" && <ActivityStatsTab stats={stats} />}
         {tab === "calls" && <CallsStatsTab stats={stats} />}
+        {tab === "agents" && <AgentsPage />}
+        {tab === "direction" && <DirectionPage />}
+        {tab === "reports" && <ReportsPage />}
         {tab === "pipeline" && <PipelinePage />}
         {tab === "analytics" && <AnalyticsPage />}
         {tab === "signs" && <SignsPage />}

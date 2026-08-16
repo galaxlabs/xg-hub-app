@@ -107,8 +107,6 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/meetings", label: "Meetings", module: "Sales", description: "Schedule and join Google Meet calls", icon: Video, roles: ROLE.sales },
   { path: "/chat", label: "Team Chat", module: "Sales", description: "Message your colleagues", icon: MessageCircle, roles: ROLE.sales },
   { path: "/settings", label: "Settings", module: "Sales", description: "Profile and appearance", icon: Settings, roles: ROLE.sales },
-  { path: "/direction", label: "Direction", module: "CRM", description: "State and executive coverage", icon: Compass, roles: ROLE.sales },
-  { path: "/agents", label: "Agents", module: "CRM", description: "Sales agent performance", icon: BadgeDollarSign, roles: ROLE.sales },
   { path: "/projects", label: "Projects", module: "Projects", description: "Project and task delivery", icon: BriefcaseBusiness, roles: ROLE.projects },
   { path: "/financials", label: "Financials", module: "Accounting", description: "GL, accounts, balances", icon: WalletCards, roles: ROLE.accounts },
   { path: "/employees", label: "Employees", module: "HR", description: "Employee directory and details", icon: Users, roles: ROLE.hr },

@@ -812,3 +812,57 @@ export const setPortalPin = (pin: string, confirm_pin: string) =>
 
 export const verifyPortalPin = (pin: string) =>
   callFrappe<{ ok: boolean }>("cclms.api.crm_portal.verify_pin", { pin });
+
+// ── Multi-dimensional report ────────────────────────────────────────────
+export const REPORT_DIMENSIONS = [
+  { key: "company", label: "Company" },
+  { key: "agent", label: "Sales Agent" },
+  { key: "state", label: "State Code" },
+  { key: "state_name", label: "State Name" },
+  { key: "branch", label: "Branch" },
+  { key: "status", label: "Status" },
+  { key: "month", label: "Month" },
+];
+
+export const REPORT_MEASURES = [
+  { key: "count", label: "Total" },
+  { key: "submitted", label: "Submitted" },
+  { key: "approved", label: "Approved" },
+  { key: "agreement_sent", label: "Agreement Sent" },
+  { key: "signed", label: "Signed" },
+  { key: "converted", label: "Converted" },
+  { key: "installed", label: "Installed" },
+  { key: "rejected", label: "Rejected" },
+  { key: "signed_rejected", label: "Signed Rejected" },
+  { key: "cancelled", label: "Cancelled" },
+  { key: "pending", label: "Pending" },
+];
+
+export interface MultiDimReportResponse {
+  dimensions: string[];
+  measures: string[];
+  rows: Record<string, any>[];
+  totals: Record<string, number>;
+  filters: Record<string, string | null>;
+}
+
+export const fetchMultiDimReport = (p: {
+  dimensions: string[];
+  measures: string[];
+  start_date?: string;
+  end_date?: string;
+  company?: string;
+  agent?: string;
+  state_code?: string;
+  status?: string;
+}) =>
+  callFrappe<MultiDimReportResponse>("cclms.api.reports.multi_dim_report.multi_dim_report", {
+    dimensions: JSON.stringify(p.dimensions),
+    measures: JSON.stringify(p.measures),
+    start_date: p.start_date || "",
+    end_date: p.end_date || "",
+    company: p.company || "",
+    agent: p.agent || "",
+    state_code: p.state_code || "",
+    status: p.status || "",
+  });
