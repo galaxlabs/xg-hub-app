@@ -526,8 +526,7 @@ function DashboardShell() {
                      setMyTimezone(tz).catch(() => {});
                    }}
                  />
-                 <div className="hidden rounded-[8px] border border-[var(--gc-border)] bg-[var(--gc-surface)] px-3 py-2 text-xs text-[var(--gc-muted)] md:block">{visibleNav.length} modules enabled</div>
-                <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => { const next = darkMode ? "light" : "dark"; const [a] = themeKey.split(":"); localStorage.setItem("gc-theme-key", `${a}:${next}`); window.dispatchEvent(new Event("gc-theme-change")); }} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
+                 <button className="rounded-[6px] border border-[var(--gc-border)] bg-[var(--gc-surface)] p-2" onClick={() => { const next = darkMode ? "light" : "dark"; const [a] = themeKey.split(":"); localStorage.setItem("gc-theme-key", `${a}:${next}`); window.dispatchEvent(new Event("gc-theme-change")); }} title={darkMode ? "Light mode" : "Dark mode"}>{darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
               </div>
             </div>
           </header>
