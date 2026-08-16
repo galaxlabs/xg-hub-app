@@ -5,8 +5,8 @@ import { callFrappe } from "../lib/frappe";
 import { syncFollowUps } from "../lib/leadCache";
 import BusinessHours, { type OpeningHourRow } from "../components/BusinessHours";
 import CompanySelect from "../components/CompanySelect";
-import { fetchFollowUpSlots } from "../lib/api";
-import type { FollowUpSlot } from "../lib/api";
+import { fetchFollowUpSlots, fetchFollowUpSettings } from "../lib/api";
+import type { FollowUpSlot, FollowUpSettings } from "../lib/api";
 
 type FollowUp = {
   name?: string;
@@ -128,11 +128,17 @@ export default function FollowUpsPage() {
     operating_company: "", business_address: "", city: "", state: "", state_code: "",
     zip_code: "", country: "",     website_url: "", source_url: "", notes: "",
     opening_hours: [] as OpeningHourRow[],
+    domain: "",
   });
+  const [fuSettings, setFuSettings] = useState<FollowUpSettings | null>(null);
   const [slotDate, setSlotDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [slots, setSlots] = useState<FollowUpSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState("");
+
+  useEffect(() => {
+    fetchFollowUpSettings().then((s) => { setFuSettings(s); }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!showCreate) return;
@@ -171,6 +177,7 @@ export default function FollowUpsPage() {
         source_url: newFu.source_url,
         notes: newFu.notes,
         opening_hours: newFu.opening_hours,
+        domain: newFu.domain,
       });
       setShowCreate(false);
       setNewFu({
@@ -179,6 +186,7 @@ export default function FollowUpsPage() {
         operating_company: "", business_address: "", city: "", state: "", state_code: "",
         zip_code: "", country: "", website_url: "", source_url: "", notes: "",
         opening_hours: [],
+        domain: "",
       });
       await load();
     } catch (e: any) {
@@ -305,8 +313,17 @@ export default function FollowUpsPage() {
                   );
                 })()}
               </div>
+              <div><label className="text-xs text-muted">Domain *</label>
+                <select
+                  className="gc-input mt-1 w-full"
+                  value={newFu.domain}
+                  onChange={(e) => setNewFu({ ...newFu, domain: e.target.value, company: "" })}
+                >
+                  <option value="">Select domain</option>
+                  {(fuSettings?.domains || []).map((d) => <option key={d} value={d}>{d}</option>)}
+                </select></div>
               <div><label className="text-xs text-muted">Operator Company *</label>
-                <div className="mt-1"><CompanySelect value={newFu.company} onChange={(v) => setNewFu({ ...newFu, company: v, operating_company: v })} placeholder="Select operator company" /></div></div>
+                <div className="mt-1"><CompanySelect domain={newFu.domain || undefined} value={newFu.company} onChange={(v) => setNewFu({ ...newFu, company: v, operating_company: v })} placeholder="Select operator company" /></div></div>
               <div><label className="text-xs text-muted">Owner / Operating Company</label>
                 <input className="gc-input mt-1 w-full" value={newFu.operating_company} onChange={(e) => setNewFu({ ...newFu, operating_company: e.target.value })} placeholder="e.g. Rocket Coin" /></div>
               <div><label className="text-xs text-muted">Business Type</label>

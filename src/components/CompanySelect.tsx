@@ -1,30 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { callFrappe } from "../lib/frappe";
+import { fetchCompaniesByDomain } from "../lib/api";
 
-interface CompanyOption { name: string; operator_name?: string; }
+interface CompanyOption { name: string; operator_name?: string; domain?: string; }
 
 export default function CompanySelect({
-  value, onChange, disabled, allowEmpty = true, placeholder = "Select Company",
+  value, onChange, disabled, allowEmpty = true, placeholder = "Select Company", domain,
 }: {
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   allowEmpty?: boolean;
   placeholder?: string;
+  domain?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    callFrappe<CompanyOption[]>("frappe.client.get_list", {
-      doctype: "Operator Companies",
-      fields: ["name", "operator_name"],
-      order_by: "operator_name asc",
-      limit_page_length: 200,
-    }).then((rows) => setCompanies(rows || [])).catch(() => {});
-  }, []);
+    if (domain) {
+      fetchCompaniesByDomain(domain).then((rows) => setCompanies(rows || [])).catch(() => {});
+    } else {
+      callFrappe<CompanyOption[]>("frappe.client.get_list", {
+        doctype: "Operator Companies",
+        fields: ["name", "operator_name", "domain"],
+        order_by: "operator_name asc",
+        limit_page_length: 200,
+      }).then((rows) => setCompanies(rows || [])).catch(() => {});
+    }
+  }, [domain]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

@@ -945,3 +945,23 @@ export const fetchAllLeaves = (p: { status?: string; from_date?: string; to_date
 
 export const approveLeave = (name: string, status: string, comment?: string) =>
   callFrappe<{ name: string; status: string }>("cclms.api.hrms.approve_leave", { name, status, comment: comment || "" });
+
+// ── Follow-up settings / domains ────────────────────────────────────────
+export interface FollowUpSettings {
+  domains: string[];
+  default_domain: string;
+  slot_start_hour: number;
+  slot_end_hour: number;
+  slot_minutes: number;
+  require_company: boolean;
+  require_domain: boolean;
+}
+
+export const fetchFollowUpSettings = () =>
+  callFrappe<FollowUpSettings>("cclms.api.follow_up.get_followup_settings");
+
+export const fetchCompaniesByDomain = (domain?: string) =>
+  callFrappe<{ name: string; domain?: string }[]>(
+    "cclms.call_centre_lead_management_system.doctype.operator_companies.operator_companies.get_operator_companies",
+    { domain: domain || "" }
+  );
