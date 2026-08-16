@@ -1,6 +1,6 @@
 // XG Hub Dashboard - ERP workspace shell
 // @ts-nocheck - route/layout scaffold; individual pages are typed where needed
-import { useState, Component } from "react";
+import { useState, useEffect, Component } from "react";
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
