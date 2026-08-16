@@ -108,3 +108,17 @@ See `CHAT_AND_STATE_HISTORY.md` for full detail. Summary:
   - `approve_leave` — Approve / Reject / Cancel (+ optional comment)
 - XG Hub **Leave** page (`/leave`, HR module): leave-balance stat cards, My/All tabs, status filter, create modal, approve/reject actions. Uses Frappe's `Leave Application` doctype.
 
+## 16. Business Domains (follow-up settings + operator companies)
+
+**Purpose**: keep separate company operations by business segment. This is OUR OWN `domain` field — **not** Frappe's built-in "Domain" (which controls Desk modules/permissions).
+
+- **`Operator Companies.domain`** (Select: BTM / ATM / Internet / Insurance) + validation in the controller (domain must be from the list; permitted-state rows require a state code).
+- **`Follow-up Settings`** (Single) — predefined domains (`Follow-up Domain` child), default domain, slot start/end/minutes, and validation toggles (`require_company`, `require_domain`).
+- **`Follow-up Schedule.domain`** — each follow-up stores its business domain.
+- **`schedule_follow_up`** now requires a valid domain (when `require_domain`) and a company (when `require_company`); invalid domain → rejected.
+- **`follow_up_slots`** reads slot config from Follow-up Settings.
+- **API**: `cclms.api.follow_up.get_followup_settings` (domains + config), `operator_companies.get_operator_companies(domain)` (company list filtered by domain).
+- **Frontend**: Follow-up form has a **Domain** dropdown (from settings) and the **Operator Company** dropdown is filtered to that domain (e.g. domain BTM → only CoinFlip BTM, Bitcoin Depot; ATM → 17 companies).
+- Seeded: all operator companies tagged (17 ATM, 2 BTM) so the domain filter is live.
+
+
