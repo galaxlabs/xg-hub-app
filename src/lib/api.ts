@@ -878,3 +878,43 @@ export interface WorkflowPivotResponse {
 
 export const fetchWorkflowPivot = (p: { start_date?: string; end_date?: string; company?: string; agent?: string }) =>
   callFrappe<WorkflowPivotResponse>("cclms.api.reports.workflow_pivot.workflow_pivot", p);
+
+// ── Chat: groups, pin, mention, attach, bot ────────────────────────────
+export interface ChatContact { name: string; full_name?: string; sales_agent?: string; }
+export interface ChatGroupInfo { name: string; group_name: string; created_by?: string; group_member_count?: number; }
+export interface ChatMessageFull {
+  name: string; sender: string; receiver?: string; message: string; is_read?: number; creation?: string;
+  attachment_url?: string; attachment_name?: string; group_name?: string; is_pinned?: number;
+  mention_users?: string; linked_doctype?: string; linked_name?: string;
+}
+
+export const listChatContacts = () =>
+  callFrappe<ChatContact[]>("cclms.api.chat.list_contacts");
+
+export const sendChatMessage = (p: {
+  receiver?: string; message: string; attachment_url?: string; attachment_name?: string;
+  group_name?: string; is_pinned?: number; mention_users?: string;
+  linked_doctype?: string; linked_name?: string;
+}) =>
+  callFrappe<ChatMessageFull>("cclms.api.chat.send_message", p);
+
+export const getChatConversation = (p: { other_user?: string; group_name?: string }) =>
+  callFrappe<ChatMessageFull[]>("cclms.api.chat.get_conversation", p);
+
+export const createChatGroup = (p: { group_name: string; members: string[] }) =>
+  callFrappe<ChatGroupInfo>("cclms.api.chat.create_group", p);
+
+export const listChatGroups = () =>
+  callFrappe<ChatGroupInfo[]>("cclms.api.chat.list_groups");
+
+export const pinChatMessage = (name: string) =>
+  callFrappe<{ ok: boolean }>("cclms.api.chat.pin_message", { name });
+
+export const unpinChatMessage = (name: string) =>
+  callFrappe<{ ok: boolean }>("cclms.api.chat.unpin_message", { name });
+
+export const attachCclmsRecord = (p: { doctype: string; name: string }) =>
+  callFrappe<{ doctype: string; name: string; label: string }>("cclms.api.chat.attach_record", p);
+
+export const botAsk = (p: { query: string }) =>
+  callFrappe<{ ok: boolean; reply?: string | null; context?: { kind: string; text: string }[]; error?: string; from?: string }>("cclms.api.chat.bot_ask", p);
