@@ -3,6 +3,8 @@ import { useDashboardSession } from "../lib/session";
 import { callFrappe } from "../lib/frappe";
 import { syncFollowUps } from "../lib/leadCache";
 import BusinessHours, { type OpeningHourRow } from "../components/BusinessHours";
+import { fetchFollowUpSlots } from "../lib/api";
+import type { FollowUpSlot } from "../lib/api";
 
 type FollowUp = {
   name?: string;
@@ -87,14 +89,28 @@ export default function FollowUpsPage() {
     zip_code: "", country: "",     website_url: "", source_url: "", notes: "",
     opening_hours: [] as OpeningHourRow[],
   });
+  const [slotDate, setSlotDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [slots, setSlots] = useState<FollowUpSlot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState("");
+
+  useEffect(() => {
+    if (!showCreate) return;
+    setSlotsLoading(true);
+    fetchFollowUpSlots({ date: slotDate })
+      .then((res) => { setSlots(res.slots || []); setSelectedSlot(""); setNewFu((p) => ({ ...p, follow_up_time: "" })); })
+      .catch(() => setSlots([]))
+      .finally(() => setSlotsLoading(false));
+  }, [showCreate, slotDate]);
 
   async function createFollowUp(e: React.FormEvent) {
     e.preventDefault();
     if (!newFu.business_name.trim()) { setError("Business name is required"); return; }
+    if (!newFu.follow_up_time) { setError("Pick a 5-minute time slot for the follow-up"); return; }
     try {
       await callFrappe("cclms.api.follow_up.schedule_follow_up", {
         lead_name: null,
-        follow_up_time: newFu.follow_up_time ? new Date(newFu.follow_up_time).toISOString().slice(0, 19).replace("T", " ") : null,
+        follow_up_time: newFu.follow_up_time,
         priority: newFu.priority || "Normal",
         business_name: newFu.business_name,
         business_phone: newFu.business_phone || newFu.contact,
@@ -201,12 +217,37 @@ export default function FollowUpsPage() {
                 <input className="gc-input mt-1 w-full" value={newFu.business_phone} onChange={(e) => setNewFu({ ...newFu, business_phone: e.target.value })} placeholder="e.g. 5558675309" /></div>
               <div><label className="text-xs text-muted">Contact (Email/Phone)</label>
                 <input className="gc-input mt-1 w-full" value={newFu.contact} onChange={(e) => setNewFu({ ...newFu, contact: e.target.value })} /></div>
-              <div><label className="text-xs text-muted">Follow-up Time</label>
-                <input type="datetime-local" className="gc-input mt-1 w-full" value={newFu.follow_up_time} onChange={(e) => setNewFu({ ...newFu, follow_up_time: e.target.value })} /></div>
+              <div><label className="text-xs text-muted">Follow-up Date</label>
+                <input type="date" className="gc-input mt-1 w-full" value={slotDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setSlotDate(e.target.value)} /></div>
               <div><label className="text-xs text-muted">Priority</label>
                 <select className="gc-input mt-1 w-full" value={newFu.priority} onChange={(e) => setNewFu({ ...newFu, priority: e.target.value })}>
                   {["Low", "Normal", "High", "Urgent"].map((p) => <option key={p} value={p}>{p}</option>)}
                 </select></div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-muted">Time Slot (5-minute slots)</label>
+                {slotsLoading ? (
+                  <div className="mt-1 py-3 text-center text-xs text-muted">Loading slots…</div>
+                ) : (
+                  <div className="mt-1 flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-border p-2">
+                    {slots.map((s) => {
+                      const active = selectedSlot === s.value;
+                      return (
+                        <button
+                          key={s.value}
+                          type="button"
+                          disabled={s.booked}
+                          onClick={() => { setSelectedSlot(s.value); setNewFu((p) => ({ ...p, follow_up_time: s.value })); }}
+                          className={`rounded border px-2 py-1 text-xs font-medium transition-colors ${s.booked ? "cursor-not-allowed border-border bg-muted/40 text-muted line-through" : active ? "border-primary bg-primary text-primary-fore" : "border-border hover:border-primary hover:text-primary"}`}
+                          title={s.booked ? `Booked: ${s.booked_by || "another client"}` : s.label}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                    {slots.length === 0 && <div className="w-full py-3 text-center text-xs text-muted">No slots available for this day.</div>}
+                  </div>
+                )}
+              </div>
               <div><label className="text-xs text-muted">Company (Operating Company)</label>
                 <input className="gc-input mt-1 w-full" value={newFu.company} onChange={(e) => setNewFu({ ...newFu, company: e.target.value })} placeholder="e.g. Rocket Coin" /></div>
               <div><label className="text-xs text-muted">Owner / Operating Company</label>

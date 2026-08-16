@@ -62,7 +62,7 @@ import MeetingsPage from "./pages/MeetingsPage";
 import ChatPage from "./pages/ChatPage";
 
 import { loginFrappe, logoutFrappe } from "./lib/frappe";
-import { fetchThemeConfig, setMyTimezone } from "./lib/api";
+import { fetchThemeConfig, setMyTimezone, hasPortalPin, verifyPortalPin } from "./lib/api";
 import type { PortalTheme, TimezoneOption } from "./lib/api";
 import { themeStyleVars } from "./lib/theme";
 
@@ -290,10 +290,74 @@ function TopBarClock({ timezone, timezones, onSelect }: {
   );
 }
 
+function SessionLock({ onUnlock, onLogout }: { onUnlock: () => void; onLogout: () => void }) {
+  const [pin, setPin] = useState("");
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [unlocking, setUnlocking] = useState(false);
+
+  useEffect(() => {
+    hasPortalPin()
+      .then((r) => setHasPin(!!r.has_pin))
+      .catch(() => setHasPin(false))
+      .finally(() => setChecking(false));
+  }, []);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (hasPin) {
+      if (!/^\d{8}$/.test(pin)) { setError("PIN must be exactly 8 digits."); return; }
+      setUnlocking(true);
+      try {
+        const res = await verifyPortalPin(pin);
+        if (res.ok) onUnlock();
+        else setError("Incorrect PIN. Try again.");
+      } catch (err: any) {
+        setError(err.message || "Could not verify PIN.");
+      } finally { setUnlocking(false); }
+    } else {
+      onUnlock();
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-lg border border-border bg-[var(--gc-card)] p-6 text-center shadow-2xl">
+        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15">
+          <Lock className="h-6 w-6" />
+        </div>
+        <h2 className="text-lg font-semibold">Session Locked</h2>
+        <p className="mt-1 text-xs text-muted">
+          {checking ? "Checking…" : hasPin ? "Enter your 8-digit PIN to continue (no OTP needed)." : "Your session was locked for inactivity. Resume to continue."}
+        </p>
+        {!checking && hasPin && (
+          <input
+            autoFocus
+            inputMode="numeric" pattern="\d{8}" maxLength={8} autoComplete="current-password"
+            className="gc-input mt-4 w-full text-center text-xl tracking-[0.5em]"
+            value={pin}
+            onChange={(e) => { setPin(e.target.value.replace(/\D/g, "")); setError(""); }}
+            placeholder="••••••••"
+          />
+        )}
+        {error && <div className="mt-3 text-xs text-red-600">{error}</div>}
+        <div className="mt-5 flex gap-2">
+          <button type="button" className="gc-btn gc-btn-ghost flex-1" onClick={onLogout}>Log out</button>
+          <button type="submit" className="gc-btn gc-btn-primary flex-1" disabled={unlocking || checking}>
+            {unlocking ? "Unlocking…" : hasPin ? "Unlock" : "Resume"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function DashboardShell() {
   const session = useDashboardSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   // Backend-driven theme: a theme key is "accentId:mode" (e.g. "pink:light").
   const [themeKey, setThemeKey] = useState(() => {
@@ -337,6 +401,30 @@ function DashboardShell() {
   };
   const location = useLocation();
 
+  // Session lock after 15 min of inactivity (resume via PIN or simply resume).
+  useEffect(() => {
+    const SESSION_LOCK_MS = 15 * 60 * 1000;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const reset = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setLocked(true), SESSION_LOCK_MS);
+    };
+    reset();
+    window.addEventListener("mousemove", reset);
+    window.addEventListener("mousedown", reset);
+    window.addEventListener("keydown", reset);
+    window.addEventListener("touchstart", reset);
+    window.addEventListener("scroll", reset, { passive: true });
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("mousemove", reset);
+      window.removeEventListener("mousedown", reset);
+      window.removeEventListener("keydown", reset);
+      window.removeEventListener("touchstart", reset);
+      window.removeEventListener("scroll", reset);
+    };
+  }, []);
+
   const roles = session?.roles ?? [];
   const visibleNav = NAV_ITEMS.filter((item) => hasAnyRole(roles, item.roles));
   const filteredNav = visibleNav.filter((item) => {
@@ -353,6 +441,7 @@ function DashboardShell() {
 
   return (
     <div className={`${darkMode ? "dark" : ""}`} style={themeVars as React.CSSProperties}>
+      {locked ? <SessionLock onUnlock={() => setLocked(false)} onLogout={() => void handleLogout()} /> : null}
       <div className="min-h-screen bg-[var(--gc-bg)] text-[var(--gc-text)]">
         {sidebarOpen ? <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} /> : null}
 

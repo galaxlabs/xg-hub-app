@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { User, Save, Check, Moon, Sun, Lock, Palette, Loader2 } from "lucide-react";
+import { User, Save, Check, Moon, Sun, Lock, Palette, Loader2, KeyRound, ShieldCheck } from "lucide-react";
 import { callFrappe } from "../lib/frappe";
 import { useDashboardSession } from "../lib/session";
-import { fetchThemeConfig } from "../lib/api";
+import { fetchThemeConfig, hasPortalPin, setPortalPin } from "../lib/api";
 import type { PortalTheme, TimezoneOption } from "../lib/api";
 import { themeStyleVars } from "../lib/theme";
 
@@ -31,6 +31,21 @@ export default function SettingsPage() {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState("");
+
+  const [pinHas, setPinHas] = useState(false);
+  const [pinLoading, setPinLoading] = useState(true);
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinSaved, setPinSaved] = useState(false);
+  const [pinError, setPinError] = useState("");
+
+  useEffect(() => {
+    hasPortalPin()
+      .then((r) => setPinHas(!!r.has_pin))
+      .catch(() => {})
+      .finally(() => setPinLoading(false));
+  }, []);
 
   const [themeKey, setThemeKey] = useState(getThemeKey);
   const [themes, setThemes] = useState<PortalTheme[]>([]);
@@ -98,6 +113,26 @@ export default function SettingsPage() {
     }
   }
 
+  async function handlePin(e: React.FormEvent) {
+    e.preventDefault();
+    setPinError("");
+    if (user === "Guest") return;
+    if (!/^\d{8}$/.test(pin)) { setPinError("PIN must be exactly 8 digits."); return; }
+    if (pin !== confirmPin) { setPinError("PIN and confirmation do not match."); return; }
+    setPinSaving(true);
+    try {
+      await setPortalPin(pin, confirmPin);
+      setPinHas(true);
+      setPinSaved(true);
+      setPin(""); setConfirmPin("");
+      setTimeout(() => setPinSaved(false), 4000);
+    } catch (err: any) {
+      setPinError(err.message || "Could not set PIN.");
+    } finally {
+      setPinSaving(false);
+    }
+  }
+
   const initials = (fullName || user).substring(0, 2).toUpperCase();
 
   return (
@@ -149,6 +184,45 @@ export default function SettingsPage() {
               {pwSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Changing...</> : <><Lock className="h-4 w-4" /> Change Password</>}
             </button>
           </form>
+        </div>
+
+        {/* PIN code */}
+        <div className="rounded-lg border border-border bg-[var(--gc-card)] p-5">
+          <h3 className="mb-1 flex items-center gap-2 text-[15px] font-semibold"><KeyRound className="h-4 w-4" /> PIN Code</h3>
+          <p className="mb-4 text-xs text-muted">
+            Set an 8-digit PIN to unlock the session lock screen instead of receiving an OTP.
+          </p>
+          {pinLoading ? (
+            <p className="py-3 text-center text-xs text-muted">Checking…</p>
+          ) : (
+            <form onSubmit={handlePin} className="space-y-3">
+              <div>
+                <label className="text-xs text-muted">New PIN (8 digits)</label>
+                <input
+                  inputMode="numeric" pattern="\d{8}" maxLength={8} autoComplete="new-password"
+                  className="gc-input mt-1 w-full tracking-widest" value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted">Confirm PIN</label>
+                <input
+                  inputMode="numeric" pattern="\d{8}" maxLength={8} autoComplete="new-password"
+                  className="gc-input mt-1 w-full tracking-widest" value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))} placeholder="••••••••"
+                />
+              </div>
+              {pinError && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{pinError}</div>}
+              {pinSaved && <div className="text-center text-xs text-green-600">PIN saved — use it to unlock the session.</div>}
+              <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs">
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+                {pinHas ? "PIN is set. You can change it below." : "No PIN set yet — create one to enable PIN unlock."}
+              </div>
+              <button type="submit" className="gc-btn gc-btn-primary w-full justify-center" disabled={pinSaving || user === "Guest"}>
+                {pinSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><KeyRound className="h-4 w-4" /> {pinHas ? "Change PIN" : "Set PIN"}</>}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Appearance */}

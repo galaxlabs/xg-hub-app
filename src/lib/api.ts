@@ -747,3 +747,32 @@ export interface DashboardStats {
 
 export const fetchDashboardStats = (p: { from_date: string; to_date: string }) =>
   callFrappe<DashboardStats>("cclms.api.dashboard_stats.dashboard_stats", p);
+
+// ── Follow-up time slots ────────────────────────────────────────────────
+export interface FollowUpSlot {
+  label: string;
+  value: string;
+  booked: boolean;
+  booked_by: string;
+}
+
+export interface FollowUpSlotsResponse {
+  date: string;
+  timezone: string;
+  slot_minutes: number;
+  slots: FollowUpSlot[];
+  booked: { value: string; name: string; business_name: string }[];
+}
+
+export const fetchFollowUpSlots = (p: { date: string; timezone?: string }) =>
+  callFrappe<FollowUpSlotsResponse>("cclms.api.follow_up.follow_up_slots", p);
+
+// ── PIN code ────────────────────────────────────────────────────────────
+export const hasPortalPin = () =>
+  callFrappe<{ has_pin: boolean }>("cclms.api.crm_portal.has_pin");
+
+export const setPortalPin = (pin: string, confirm_pin: string) =>
+  callFrappe<{ has_pin: boolean }>("cclms.api.crm_portal.set_pin", { pin, confirm_pin });
+
+export const verifyPortalPin = (pin: string) =>
+  callFrappe<{ ok: boolean }>("cclms.api.crm_portal.verify_pin", { pin });

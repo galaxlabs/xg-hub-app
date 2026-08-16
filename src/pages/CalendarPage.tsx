@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Phone } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { useDashboardSession } from "../lib/session";
-import { getCachedLeads, getCachedFollowUps } from "../lib/leadCache";
+import { getCachedFollowUps } from "../lib/leadCache";
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -23,21 +23,16 @@ export default function CalendarPage() {
   const [selected, setSelected] = useState(new Date());
   const userKey = session?.user || "guest";
 
-  const leads = useMemo(() => getCachedLeads<any>(userKey), [userKey]);
   const followUps = useMemo(() => getCachedFollowUps<any>(userKey), [userKey]);
 
   const events = useMemo<EventItem[]>(() => {
     const out: EventItem[] = [];
-    for (const l of leads) {
-      const t = fmt(l.follow_up_time) || fmt(l.post_date) || fmt(l.creation);
-      if (t) out.push({ id: `lead-${l.name}`, title: l.business_name || l.name, time: t, type: "lead", detail: l.business_phone_number });
-    }
     for (const f of followUps) {
       const t = fmt(f.follow_up_time);
       if (t) out.push({ id: `fu-${f.name || f.lead}`, title: f.business_name || f.lead || "", time: t, type: "followup", detail: f.business_phone });
     }
     return out;
-  }, [leads, followUps]);
+  }, [followUps]);
 
   const eventsByDate = useMemo(() => {
     const map: Record<string, EventItem[]> = {};
@@ -59,7 +54,7 @@ export default function CalendarPage() {
     <div className="p-6 space-y-5 animate-fade-in">
       <div>
         <h1 className="text-xl font-semibold flex items-center gap-2"><CalendarDays className="h-5 w-5 text-indigo-500" /> Calendar</h1>
-        <p className="text-sm text-muted">Track your leads and follow-ups on the go</p>
+        <p className="text-sm text-muted">Follow-up calendar — dots show booked follow-up slots</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
@@ -92,13 +87,15 @@ export default function CalendarPage() {
                   }`}
                 >
                   <div className={`text-xs font-semibold ${isToday ? "text-primary" : "text-muted"}`}>{c.getDate()}</div>
-                  <div className="mt-1 space-y-1">
-                    {evts.slice(0, 3).map((ev) => (
-                      <div key={ev.id} className="truncate rounded px-1 text-[10px]" style={{ background: ev.type === "lead" ? "#eef2ff" : "#fef3c7", color: ev.type === "lead" ? "#4f46e5" : "#92400e" }}>
-                        {ev.title}
-                      </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {evts.slice(0, 6).map((ev) => (
+                      <span
+                        key={ev.id}
+                        className="h-1.5 w-1.5 rounded-full bg-amber-500"
+                        title={ev.title}
+                      />
                     ))}
-                    {evts.length > 3 && <div className="text-[9px] text-muted">+{evts.length - 3} more</div>}
+                    {evts.length > 6 && <span className="text-[9px] text-muted">+{evts.length - 6}</span>}
                   </div>
                 </button>
               );
@@ -110,18 +107,18 @@ export default function CalendarPage() {
         <div className="rounded-lg border border-border bg-[var(--gc-card)] p-4">
           <h3 className="mb-3 text-sm font-semibold">{MONTH_NAMES[selected.getMonth()]} {selected.getDate()}, {selected.getFullYear()}</h3>
           {selectedEvents.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted">No follow-ups or leads scheduled for this date.</p>
+            <p className="py-8 text-center text-sm text-muted">No follow-ups scheduled for this date.</p>
           ) : (
             <div className="space-y-2">
               {selectedEvents.map((ev) => (
                 <div key={ev.id} className="rounded-lg border border-border p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1 truncate text-sm font-medium">
-                      {ev.type === "lead" ? <MapPin className="h-3.5 w-3.5 text-indigo-500" /> : <Phone className="h-3.5 w-3.5 text-amber-600" />}
+                      <Phone className="h-3.5 w-3.5 text-amber-600" />
                       {ev.title || ev.id}
                     </span>
-                    <span className="rounded-full px-2 py-0.5 text-[10px]" style={{ background: ev.type === "lead" ? "#eef2ff" : "#fef3c7", color: ev.type === "lead" ? "#4f46e5" : "#92400e" }}>
-                      {ev.type === "lead" ? "Lead" : "Follow-up"}
+                    <span className="rounded-full px-2 py-0.5 text-[10px]" style={{ background: "#fef3c7", color: "#92400e" }}>
+                      Follow-up
                     </span>
                   </div>
                   {ev.detail && <p className="mt-1 text-xs text-muted">{ev.detail}</p>}
