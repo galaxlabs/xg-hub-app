@@ -5,13 +5,12 @@ import {
 } from "lucide-react";
 import { callFrappe } from "../lib/frappe";
 import { useDashboardSession } from "../lib/session";
+import EmojiPickerPanel from "../components/EmojiPickerPanel";
 import {
   listChatContacts, sendChatMessage, getChatConversation, createChatGroup,
   listChatGroups, pinChatMessage, unpinChatMessage, attachCclmsRecord, botAsk,
 } from "../lib/api";
 import type { ChatContact, ChatGroupInfo, ChatMessageFull } from "../lib/api";
-
-const EMOJIS = ["😀","😄","😂","🤣","😊","😍","🤔","😎","🥳","😢","😡","👍","👎","🙏","👏","💪","🔥","❤️","🎉","✅","❌","📞","📧","💰","📍","📈","📉"];
 
 const ATTACHABLE = [
   { doctype: "ATM Leads", label: "ATM Lead", field: "business_name" },
@@ -99,6 +98,21 @@ export default function ChatPage() {
         mention_users: mentions,
       });
       setInput("");
+      await loadMessages(activeUser, activeGroup);
+    } catch {}
+  }
+
+  async function sendSticker(label: string, url: string) {
+    if (!activeUser && !activeGroup) return;
+    try {
+      await sendChatMessage({
+        receiver: activeUser || undefined,
+        group_name: activeGroup || undefined,
+        message: `🖼️ Sticker: ${label}`,
+        attachment_url: url,
+        attachment_name: `${label}.gif`,
+      });
+      setShowEmoji(false);
       await loadMessages(activeUser, activeGroup);
     } catch {}
   }
@@ -322,9 +336,15 @@ export default function ChatPage() {
                       <div className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-indigo-500 text-white" : "bg-muted"}`}>
                         {!mine && activeGroup && <div className="mb-0.5 text-[10px] font-semibold text-primary">{contacts.find((c) => c.name === m.sender)?.full_name || m.sender}</div>}
                         {m.attachment_url && (
-                          <a href={fileHref(m.attachment_url)} target="_blank" rel="noopener noreferrer" className={`mb-1.5 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium underline ${mine ? "bg-white/15 text-white" : "bg-[var(--gc-card)] text-primary"}`}>
-                            <FileText className="h-4 w-4" /> {m.attachment_name || "Attachment"}
-                          </a>
+                          /\.(gif|png|jpe?g|webp)(\?|$)/i.test(m.attachment_url) ? (
+                            <a href={fileHref(m.attachment_url)} target="_blank" rel="noopener noreferrer" className="mb-1.5 block">
+                              <img src={fileHref(m.attachment_url)} alt={m.attachment_name || "image"} className="max-h-44 rounded-md object-cover" loading="lazy" />
+                            </a>
+                          ) : (
+                            <a href={fileHref(m.attachment_url)} target="_blank" rel="noopener noreferrer" className={`mb-1.5 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium underline ${mine ? "bg-white/15 text-white" : "bg-[var(--gc-card)] text-primary"}`}>
+                              <FileText className="h-4 w-4" /> {m.attachment_name || "Attachment"}
+                            </a>
+                          )
                         )}
                         {m.linked_doctype && (
                           <div className={`mb-1.5 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ${mine ? "bg-white/15 text-white" : "bg-[var(--gc-card)] text-primary"}`}>
@@ -360,11 +380,12 @@ export default function ChatPage() {
                 <button type="button" className="gc-btn gc-btn-ghost h-9 w-9 p-0" onClick={() => fileRef.current?.click()} disabled={uploading} title="Attach file">
                   {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
                 </button>
-                <button type="button" className="gc-btn gc-btn-ghost h-9 w-9 p-0" onClick={() => setShowEmoji((s) => !s)} title="Emoji"><Smile className="h-4 w-4" /></button>
+                <button type="button" className="gc-btn gc-btn-ghost h-9 w-9 p-0" onClick={() => { setShowEmoji((s) => !s); setMentionOpen(false); }} title="Emoji & stickers"><Smile className="h-4 w-4" /></button>
                 {showEmoji && (
-                  <div className="absolute bottom-full left-12 z-20 mb-1 flex w-56 flex-wrap gap-1 rounded-lg border border-border bg-[var(--gc-card)] p-2 shadow-xl">
-                    {EMOJIS.map((em) => <button key={em} type="button" className="rounded p-1 text-lg hover:bg-muted/50" onClick={() => { setInput((v) => v + em); }}>{em}</button>)}
-                  </div>
+                  <EmojiPickerPanel
+                    onEmoji={(em) => { setInput((v) => v + em); }}
+                    onSticker={(s) => void sendSticker(s.label, s.url)}
+                  />
                 )}
                 <input className="gc-input flex-1" placeholder="Type a message… @ to mention" value={input} onChange={(e) => onInputChange(e.target.value)} />
                 <button type="submit" className="gc-btn gc-btn-primary" disabled={!input.trim()}><Send className="h-4 w-4" /></button>
